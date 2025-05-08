@@ -992,7 +992,7 @@
                         const model = gltf.scene;
                         // Adjust scale as needed for the penguin model
                         model.scale.set(0.5, 0.5, 0.5); 
-                        model.position.y = 0; // Adjust if penguin model's origin is different
+                        model.position.y = 0.75; // Adjusted to raise the penguin
                         
                         model.traverse(child => {
                             if (child.isMesh) {
