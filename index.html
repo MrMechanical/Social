@@ -52,10 +52,31 @@
             --element-spacing: 12px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; width: 100%; overflow: hidden; font-family: var(--font-family); color: var(--text-primary); background-color: var(--app-background); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-
-        #app-container { width: 100vw; height: 100vh; background-color: var(--content-background); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* Added for iOS */
+        }
+        html, body {
+            height: 100%; /* Consider testing alternatives if vh causes issues on iOS */
+            width: 100%;
+            overflow: hidden;
+            font-family: var(--font-family);
+            color: var(--text-primary);
+            background-color: var(--app-background);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        #app-container {
+            width: 100vw;
+            height: 100vh; /* Test thoroughly on iOS with dynamic toolbars */
+            background-color: var(--content-background);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
         #view-wrapper { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; position: relative; }
         .view { display: none !important; width: 100%; height: 100%; flex-direction: column; overflow: hidden; background-color: var(--app-background); }
         .view.active-view { display: flex !important; }
@@ -787,12 +808,12 @@
                  }
             }
 
-            function createAnimatedGrass(scene, floorSize, instanceCount = 50000) { // Increased instanceCount back to 50000
-                const BLADE_HEIGHT = 0.1; 
-                const BLADE_WIDTH = 0.012; 
+            function createAnimatedGrass(scene, floorSize, instanceCount = 5000) { // Reduced default instanceCount for mobile performance
+                const BLADE_HEIGHT = 0.1;
+                const BLADE_WIDTH = 0.012;
 
                 const bladeGeometry = new THREE.PlaneGeometry(BLADE_WIDTH, BLADE_HEIGHT, 1, 3);
-                bladeGeometry.translate(0, BLADE_HEIGHT / 2, 0); 
+                bladeGeometry.translate(0, BLADE_HEIGHT / 2, 0);
 
                 const grassMaterial = new THREE.MeshStandardMaterial({
                     color: 0x228B22, // Forest Green
@@ -866,7 +887,8 @@
                 }
                 grassMesh.instanceMatrix.needsUpdate = true;
                 
-                console.log("Animated grass created with " + instanceCount + " instances (smaller, many, solid color, extremely slow)."); // Updated log message
+                // Updated log message
+                console.log("Animated grass created with " + instanceCount + " instances (config for mobile perf: smaller, fewer, solid color, extremely slow)."); 
             }
 
 
