@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>SocialFusion Pro - Fixed 3D Placement</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
@@ -231,6 +231,11 @@
         #delete-item-btn { background-color: var(--destructive-color) !important; color: white !important; border-color: var(--destructive-color) !important; }
         #delete-item-btn:hover { background-color: #D93025 !important; }
 
+        /* 3D Parrot Tamagotchi Specific Styles */
+        #parrot-view { position: relative; width: 100%; height: 100%; overflow: hidden; padding: 0; background-color: #add8e6; /* Light blue, matching JS */ }
+        #parrot-canvas { display: block; width: 100%; height: 100%; }
+        /* Note: #parrot-loading-indicator styles are mostly inline in HTML for simplicity here */
+
         /* Video Call Overlay */
         #video-call-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); z-index: 900; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; color: white; }
         #video-call-overlay.active { display: flex; }
@@ -361,7 +366,7 @@
                     <button id="close-game-button" style="display: none;">Close Game</button>
                     <div id="game-list-container"></div>
                     <div id="game-iframe-container" style="display: none;">
-                        <iframe id="game-iframe" allowfullscreen></iframe>
+                        <iframe id="game-iframe" allowfullscreen title="Embedded Game Content"></iframe>
                     </div>
                  </div>
             </div>
@@ -382,6 +387,12 @@
                     <label for="username-input">Username:</label>
                     <input type="text" id="username-input" placeholder="Your Username">
                  </div>
+            </div>
+
+            <!-- 3D Penguin Tamagotchi View -->
+            <div id="penguin-view" class="view">
+                <canvas id="penguin-canvas"></canvas>
+                <div id="penguin-loading-indicator" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.7); color: white; padding: 15px 25px; border-radius: var(--border-radius); display: none; z-index: 100; pointer-events: none;">Loading Penguin...</div>
             </div>
 
              <!-- 3D Decorator View -->
@@ -416,6 +427,7 @@
             <button class="nav-tab" data-view="feed" title="Feed"><i data-feather="layout"></i> <span>Feed</span></button>
             <button class="nav-tab" data-view="games" title="Games"><i data-feather="cpu"></i> <span>Games</span></button>
             <button class="nav-tab" data-view="decorator" title="Decorate"><i data-feather="home"></i> <span>Decorate</span></button>
+            <button class="nav-tab" data-view="penguin" title="Penguin"><i data-feather="activity"></i> <span>Penguin</span></button>
             <button class="nav-tab" data-view="settings" title="Settings"><i data-feather="settings"></i> <span>Settings</span></button>
         </nav>
     </div>
@@ -488,6 +500,10 @@
             const decoratorDeleteBtn = document.getElementById('delete-item-btn');
             // Added: Fullscreen button element selection (will be done later in event listener setup)
 
+            // --- 3D Penguin Elements ---
+            const penguinCanvas = document.getElementById('penguin-canvas');
+            const penguinLoadingIndicator = document.getElementById('penguin-loading-indicator');
+
              // --- Helper Functions ---
              function encryptMessage(text, key) { if (!key || !text) return text; try { return CryptoJS.AES.encrypt(text, key).toString(); } catch (e) { console.error("Encryption failed:", e); return `Error encrypting: ${text.substring(0,10)}...`; }}
              function decryptMessage(ciphertext, key) { if (!key || !ciphertext) return ciphertext; try { const bytes = CryptoJS.AES.decrypt(ciphertext, key); const originalText = bytes.toString(CryptoJS.enc.Utf8); return originalText || "[Unable to decrypt - possibly wrong key]"; } catch (e) { console.error("Decryption failed:", e); return `[Decryption Error] ${ciphertext.substring(0,10)}...`; }}
@@ -519,14 +535,33 @@
                 }
                 if (viewName === 'settings') updateEncryptionKeyStatus();
                 if (viewName === 'games') renderGamesList();
-                if (viewName === 'decorator' && !decoratorSceneInitialized) {
-                     try {
-                        init3DDecorator();
-                     } catch (error) {
-                        console.error("Failed to initialize 3D Decorator:", error);
-                        if(decoratorLoadingIndicator) decoratorLoadingIndicator.textContent = "Error loading 3D view.";
-                        if(decoratorLoadingIndicator) decoratorLoadingIndicator.style.display = 'block';
-                     }
+
+                if (viewName === 'decorator') {
+                    if (!decoratorSceneInitialized) {
+                        try {
+                            init3DDecorator(); // Initializes and starts animation
+                        } catch (error) {
+                            console.error("Failed to initialize 3D Decorator:", error);
+                            if(decoratorLoadingIndicator) decoratorLoadingIndicator.textContent = "Error loading 3D view.";
+                            if(decoratorLoadingIndicator) decoratorLoadingIndicator.style.display = 'block';
+                        }
+                    } else {
+                        animateDecorator(); // Restart animation loop if already initialized
+                    }
+                }
+
+                if (viewName === 'penguin') {
+                    if (!penguinSceneInitialized) {
+                        try {
+                            initPenguinView(); // Initializes and starts animation
+                        } catch (error) {
+                            console.error("Failed to initialize 3D Penguin:", error);
+                            if(penguinLoadingIndicator) penguinLoadingIndicator.textContent = "Error loading Penguin.";
+                            if(penguinLoadingIndicator) penguinLoadingIndicator.style.display = 'block';
+                        }
+                    } else {
+                        animatePenguin(); // Restart animation loop if already initialized
+                    }
                 }
                  safeFeatherReplace(); // Call feather replace after view switch
             }
@@ -897,6 +932,135 @@
                 console.log("Animated grass created with " + instanceCount + " instances (config for mobile perf: smaller, fewer, solid color, extremely slow)."); 
             }
 
+            // --- 3D Penguin Tamagotchi Logic ---
+            let penguinScene, penguinCamera, penguinRenderer, penguinOrbitControls, penguinMixer;
+            let penguinSceneInitialized = false;
+            const penguinClock = new THREE.Clock(); // For animation timing
+
+            function initPenguinView() {
+                if (penguinSceneInitialized || !penguinCanvas) {
+                    console.log("3D Penguin already initialized or canvas not found.");
+                    return;
+                }
+                console.log("Initializing 3D Penguin...");
+                if(penguinLoadingIndicator) penguinLoadingIndicator.style.display = 'block';
+
+                try {
+                    penguinScene = new THREE.Scene();
+                    penguinScene.background = new THREE.Color(0xadd8e6); // Light blue background
+
+                    penguinCamera = new THREE.PerspectiveCamera(45, penguinCanvas.clientWidth / penguinCanvas.clientHeight, 0.1, 100);
+                    penguinCamera.position.set(0, 1.5, 4); // Adjusted for potentially taller model
+                    penguinCamera.lookAt(0, 0.75, 0); // Adjusted for potentially taller model
+
+                    penguinRenderer = new THREE.WebGLRenderer({ canvas: penguinCanvas, antialias: true });
+                    penguinRenderer.setSize(penguinCanvas.clientWidth, penguinCanvas.clientHeight);
+                    penguinRenderer.setPixelRatio(window.devicePixelRatio);
+                    penguinRenderer.shadowMap.enabled = true;
+                    penguinRenderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+
+                    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+                    penguinScene.add(ambientLight);
+                    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+                    directionalLight.position.set(2, 3, 2); 
+                    directionalLight.castShadow = true;
+                    directionalLight.shadow.mapSize.width = 1024; 
+                    directionalLight.shadow.mapSize.height = 1024;
+                    directionalLight.shadow.camera.near = 0.5;
+                    directionalLight.shadow.camera.far = 10;
+                    penguinScene.add(directionalLight);
+
+                    const groundGeometry = new THREE.PlaneGeometry(10, 10);
+                    const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x90ee90, side: THREE.DoubleSide }); 
+                    const groundPlane = new THREE.Mesh(groundGeometry, groundMaterial);
+                    groundPlane.rotation.x = -Math.PI / 2;
+                    groundPlane.receiveShadow = true;
+                    penguinScene.add(groundPlane);
+
+                    penguinOrbitControls = new OrbitControls(penguinCamera, penguinRenderer.domElement);
+                    penguinOrbitControls.enableDamping = true;
+                    penguinOrbitControls.dampingFactor = 0.05; 
+                    penguinOrbitControls.target.set(0, 0.75, 0); // Adjusted for potentially taller model
+                    penguinOrbitControls.minDistance = 1; 
+                    penguinOrbitControls.maxDistance = 15; // Increased max distance
+                    penguinOrbitControls.maxPolarAngle = Math.PI / 2 - 0.05; 
+                    penguinOrbitControls.update();
+
+                    const loader = new GLTFLoader();
+                    // Switched to African Penguin model
+                    loader.load('african_penguin_spheniscus_demersus_low_poly/scene.gltf', (gltf) => {
+                        const model = gltf.scene;
+                        // Adjust scale as needed for the penguin model
+                        model.scale.set(0.5, 0.5, 0.5); 
+                        model.position.y = 0; // Adjust if penguin model's origin is different
+                        
+                        model.traverse(child => {
+                            if (child.isMesh) {
+                                child.castShadow = true;
+                                child.receiveShadow = false; 
+                            }
+                        });
+                        penguinScene.add(model);
+
+                        penguinMixer = new THREE.AnimationMixer(model);
+                        if (gltf.animations && gltf.animations.length) {
+                            // Attempt to play the first animation, adjust if penguin has specific animation names
+                            const action = penguinMixer.clipAction(gltf.animations[0]); 
+                            action.play();
+                        } else {
+                            console.warn("Penguin model has no animations or they could not be found.");
+                        }
+                        
+                        if(penguinLoadingIndicator) penguinLoadingIndicator.style.display = 'none';
+                        penguinSceneInitialized = true;
+                        animatePenguin(); 
+                        console.log("3D Penguin (African Penguin) Initialized and model loaded.");
+                    }, undefined, (error) => {
+                        console.error("Error loading African Penguin model:", error);
+                        if(penguinLoadingIndicator) penguinLoadingIndicator.textContent = "Error loading penguin model.";
+                    });
+
+                } catch (error) {
+                    console.error("ERROR initializing 3D Penguin View:", error);
+                    if(penguinLoadingIndicator) {
+                        penguinLoadingIndicator.textContent = "Error Initializing Penguin View";
+                        penguinLoadingIndicator.style.display = 'block';
+                    }
+                }
+            }
+
+            function animatePenguin() { 
+                if (!penguinSceneInitialized || currentView !== 'penguin') { 
+                    return;
+                }
+                requestAnimationFrame(animatePenguin); 
+
+                const deltaTime = penguinClock.getDelta();
+
+                if (penguinOrbitControls) {
+                    penguinOrbitControls.update();
+                }
+                if (penguinMixer) {
+                    penguinMixer.update(deltaTime);
+                }
+
+                if (penguinCanvas && penguinRenderer && penguinCamera &&
+                    (penguinCanvas.clientWidth !== penguinRenderer.domElement.width ||
+                     penguinCanvas.clientHeight !== penguinRenderer.domElement.height)) {
+                    
+                    const newWidth = penguinCanvas.clientWidth;
+                    const newHeight = penguinCanvas.clientHeight;
+
+                    if (newWidth > 0 && newHeight > 0) { 
+                        penguinRenderer.setSize(newWidth, newHeight, false);
+                        penguinCamera.aspect = newWidth / newHeight;
+                        penguinCamera.updateProjectionMatrix();
+                    }
+                }
+                if (penguinRenderer && penguinScene && penguinCamera) {
+                    penguinRenderer.render(penguinScene, penguinCamera);
+                }
+            }
 
             // --- Event Listeners Setup ---
             if (toggleSidebarBtn && contactListContainerEl) { toggleSidebarBtn.addEventListener('click', () => { contactListContainerEl.classList.toggle('collapsed'); const isCollapsed = contactListContainerEl.classList.contains('collapsed'); toggleSidebarBtn.innerHTML = isCollapsed ? feather.icons['arrow-right-circle'].toSvg() : feather.icons['arrow-left-circle'].toSvg(); }); }
