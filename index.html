@@ -674,15 +674,15 @@
                 if (itemData.id === 'helmet') scale = 0.5;
                 if (itemData.id === 'flower') scale = 1.0;
                 model.scale.set(scale, scale, scale);
-                model.updateMatrixWorld(true);                // <- important
+                model.updateMatrixWorld(true); // Ensure matrix is updated for bounding box calculation
 
                 /* 2️⃣  Compute offset after scaling          */
                 const box    = new THREE.Box3().setFromObject(model);
-                const offset = -box.min.y;
+                const offset = -box.min.y; // Calculate offset to align model's base with y=0
 
                 /* 3️⃣  Position model at click-point         */
-                model.position.copy(position);
-                model.position.y += offset;
+                model.position.copy(position); // Set initial position to click point
+                model.position.y += offset;    // Adjust y based on calculated offset
 
                 /* 4️⃣  Shadows                               */
                 model.traverse(c => {
@@ -691,7 +691,7 @@
 
                 /* 5️⃣  Book-keeping                          */
                 const id = `item_${decoratorUniqueItemIdCounter++}`;
-                model.uuid = id;
+                model.uuid = id; // Assign unique ID for local tracking
                 decoratorScene.add(model);
                 decoratorPlacedItems[id] = { threeObject:model, dataId:itemData.id };
 
@@ -756,7 +756,7 @@
                                  model.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z);
                                  let scale = 1.0;
                                  if (itemDefinition.id === 'shiba') scale = 0.5;
-                                 else if (itemDefinition.id === 'duck') scale = 0.01; // Note: original script had 0.01, might need adjusting like placeDecoratorItem
+                                 else if (itemDefinition.id === 'duck') scale = 0.15; // Consistent scale
                                  else if (itemDefinition.id === 'helmet') scale = 0.5;
                                  else if (itemDefinition.id === 'flower') scale = 1.0;
                                  model.scale.set(scale, scale, scale);
@@ -766,7 +766,7 @@
                              }, undefined, (err) => console.error("Error loading remote create:", err));
                          }
                      } else if (item) {
-                         if (decoratorSelectedPlacedObject !== item.threeObject) {
+                         if (decoratorSelectedPlacedObject !== item.threeObject) { // Avoid updating if currently being dragged
                               item.threeObject.position.set(data.position.x, data.position.y, data.position.z);
                               item.threeObject.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z);
                          }
@@ -779,11 +779,12 @@
 
             function createAnimatedGrass(scene, floorSize, instanceCount = 50000) {
                 const textureLoader = new THREE.TextureLoader();
+                // UPDATED URLs for grass textures
                 const bladeDiffuseTexture = textureLoader.load('https://rawcdn.githack.com/pailhead/three.js-grass-example/master/blade_diffuse.png');
                 const bladeAlphaTexture = textureLoader.load('https://rawcdn.githack.com/pailhead/three.js-grass-example/master/blade_alpha.png');
 
-                const bladeGeometry = new THREE.PlaneGeometry(0.12, 1.0, 1, 3);
-                bladeGeometry.translate(0, 0.5, 0); 
+                const bladeGeometry = new THREE.PlaneGeometry(0.12, 1.0, 1, 3); // Blade dimensions
+                bladeGeometry.translate(0, 0.5, 0); // Pivot at the base
 
                 const grassMaterial = new THREE.MeshStandardMaterial({
                     map: bladeDiffuseTexture,
@@ -820,7 +821,7 @@
                         float noiseInputZ = instanceWorldPos.z * 0.15 + time * 0.15;
                         float windStrength = random(vec2(noiseInputX, noiseInputZ)); 
 
-                        float bendFactor = position.y + 0.5; 
+                        float bendFactor = position.y + 0.5; // position.y is [0,1] after translate. So bendFactor is [0.5, 1.5]
 
                         float overallWindScale = 0.6; 
                         float bendAngle = windStrength * overallWindScale * bendFactor; 
@@ -841,7 +842,7 @@
                 scene.add(grassMesh);
 
                 const dummy = new THREE.Object3D();
-                const halfFloor = floorSize / 2;
+                // const halfFloor = floorSize / 2; // Not strictly needed here
 
                 for (let i = 0; i < instanceCount; i++) {
                     dummy.position.set(
