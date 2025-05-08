@@ -224,6 +224,9 @@
         #mode-controls button { padding: 8px 10px; font-size: 0.85em; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--hairline-color); border-radius: var(--border-radius); box-shadow: var(--shadow-subtle); cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease; }
         #mode-controls button.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
         #mode-controls button:hover:not(.active) { background-color: rgba(230, 230, 230, 0.9); }
+        #mode-controls button i { /* Ensure feather icons render correctly if needed */
+             vertical-align: middle; 
+        }
         #loading-indicator { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.7); color: white; padding: 15px 25px; border-radius: var(--border-radius); display: none; z-index: 100; pointer-events: none; }
         #delete-item-btn { background-color: var(--destructive-color) !important; color: white !important; border-color: var(--destructive-color) !important; }
         #delete-item-btn:hover { background-color: #D93025 !important; }
@@ -389,6 +392,8 @@
                         <button id="view-mode-btn" class="active">View</button>
                         <button id="edit-mode-btn">Edit</button>
                         <button id="delete-item-btn" style="display: none;">Delete</button>
+                        <!-- Added Fullscreen Button -->
+                        <button id="fullscreen-btn" title="Toggle Fullscreen"><i data-feather="maximize"></i></button> 
                     </div>
                     <div id="item-catalog">
                         <!-- Catalog items added by JS -->
@@ -481,6 +486,7 @@
             const decoratorViewModeBtn = document.getElementById('view-mode-btn');
             const decoratorEditModeBtn = document.getElementById('edit-mode-btn');
             const decoratorDeleteBtn = document.getElementById('delete-item-btn');
+            // Added: Fullscreen button element selection (will be done later in event listener setup)
 
              // --- Helper Functions ---
              function encryptMessage(text, key) { if (!key || !text) return text; try { return CryptoJS.AES.encrypt(text, key).toString(); } catch (e) { console.error("Encryption failed:", e); return `Error encrypting: ${text.substring(0,10)}...`; }}
@@ -522,7 +528,7 @@
                         if(decoratorLoadingIndicator) decoratorLoadingIndicator.style.display = 'block';
                      }
                 }
-                 safeFeatherReplace();
+                 safeFeatherReplace(); // Call feather replace after view switch
             }
 
             function renderContacts(contactsToDisplay = masterContacts) {
@@ -808,12 +814,12 @@
                  }
             }
 
-            function createAnimatedGrass(scene, floorSize, instanceCount = 5000) { // Reduced default instanceCount for mobile performance
-                const BLADE_HEIGHT = 0.1;
-                const BLADE_WIDTH = 0.012;
+             function createAnimatedGrass(scene, floorSize, instanceCount = 5000) { // Reduced default instanceCount for mobile performance
+                const BLADE_HEIGHT = 0.1; 
+                const BLADE_WIDTH = 0.012; 
 
                 const bladeGeometry = new THREE.PlaneGeometry(BLADE_WIDTH, BLADE_HEIGHT, 1, 3);
-                bladeGeometry.translate(0, BLADE_HEIGHT / 2, 0);
+                bladeGeometry.translate(0, BLADE_HEIGHT / 2, 0); 
 
                 const grassMaterial = new THREE.MeshStandardMaterial({
                     color: 0x228B22, // Forest Green
@@ -909,9 +915,52 @@
             if(videoToggleBtn) videoToggleBtn.addEventListener('click', toggleVideo);
             if(closeGameButton) closeGameButton.addEventListener('click', closeGame);
 
+            // Fullscreen API Button Handler
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            if (fullscreenBtn) {
+                fullscreenBtn.addEventListener('click', () => {
+                    const elem = document.documentElement; // Target the whole page
+
+                    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                        // Enter fullscreen
+                        if (elem.requestFullscreen) {
+                            elem.requestFullscreen().catch(err => console.error(`FS Error: ${err.message} (${err.name})`));
+                        } else if (elem.webkitRequestFullscreen) { /* Safari */
+                            elem.webkitRequestFullscreen().catch(err => console.error(`FS Error (webkit): ${err.message} (${err.name})`));
+                        }
+                        // Update button icon (optional)
+                        fullscreenBtn.innerHTML = feather.icons['minimize'].toSvg(); 
+                    } else {
+                        // Exit fullscreen
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen().catch(err => console.error(`Exit FS Error: ${err.message} (${err.name})`));
+                        } else if (document.webkitExitFullscreen) { /* Safari */
+                            document.webkitExitFullscreen().catch(err => console.error(`Exit FS Error (webkit): ${err.message} (${err.name})`));
+                        }
+                         // Update button icon (optional)
+                         fullscreenBtn.innerHTML = feather.icons['maximize'].toSvg();
+                    }
+                });
+
+                 // Optional: Listen for fullscreen changes to update button icon
+                 document.addEventListener('fullscreenchange', () => {
+                     if (!document.fullscreenElement && fullscreenBtn) {
+                        fullscreenBtn.innerHTML = feather.icons['maximize'].toSvg();
+                     }
+                 });
+                 document.addEventListener('webkitfullscreenchange', () => { // Safari
+                     if (!document.webkitFullscreenElement && fullscreenBtn) {
+                         fullscreenBtn.innerHTML = feather.icons['maximize'].toSvg();
+                     }
+                 });
+            }
+
+
             // --- Initial Setup ---
             updateEncryptionKeyStatus();
             switchView('chat'); // Set initial view
+             // Initial icon replacement
+             safeFeatherReplace(); 
 
         });
     </script>
