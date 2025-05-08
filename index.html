@@ -2,13 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- Viewport setup for responsiveness, safe areas, and disabling zoom -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>SocialFusion Pro - Single File Online Assets</title>
+    <title>SocialFusion Pro - ES Module Fix</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
 
-    <!-- Embedded CSS -->
+    <!-- RESTORED Three.js Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <!-- Embedded CSS (Keep the full CSS from the previous step) -->
     <style>
         :root {
             /* Core Palette */
@@ -46,74 +55,31 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { height: 100%; width: 100%; overflow: hidden; font-family: var(--font-family); color: var(--text-primary); background-color: var(--app-background); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
-        #app-container {
-            width: 100vw; height: 100vh; background-color: var(--content-background);
-            display: flex; flex-direction: column; /* Stack view-wrapper and nav */
-            overflow: hidden; position: relative;
-        }
-
-        /* --- View Container --- */
+        #app-container { width: 100vw; height: 100vh; background-color: var(--content-background); display: flex; flex-direction: column; overflow: hidden; position: relative; }
         #view-wrapper { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; position: relative; }
-
-        /* --- Views --- */
         .view { display: none !important; width: 100%; height: 100%; flex-direction: column; overflow: hidden; background-color: var(--app-background); }
         .view.active-view { display: flex !important; }
+        .scrollable-content { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
-        /* Common Scrollable Area Styling */
-        .scrollable-content { overflow-y: auto; -webkit-overflow-scrolling: touch; /* Ensure content scrolls above nav */ }
+        #feed-view, #games-view, #settings-view, #message-area, #decorator-view { padding-bottom: calc(var(--element-spacing) + env(safe-area-inset-bottom)); }
+        #games-view, #settings-view, #decorator-view { padding-left: 15px; padding-right: 15px; padding-top: calc(env(safe-area-inset-top) + 15px); }
+        #feed-view { padding-left: 10px; padding-right: 10px; padding-top: calc(env(safe-area-inset-top) + 10px); }
+        #message-area { padding-bottom: 0; }
 
-        /* Padding to avoid bottom nav - Applied to main scrollable containers */
-        /* Note: Chat view padding is handled by message-area within its flex context */
-        #feed-view, #games-view, #settings-view, #message-area, #decorator-view {
-             padding-bottom: calc(var(--element-spacing) + env(safe-area-inset-bottom));
-        }
-         /* Adjust padding for elements directly inside views if they scroll fully */
-        #games-view, #settings-view, #decorator-view {
-            padding-left: 15px;
-            padding-right: 15px;
-            padding-top: calc(env(safe-area-inset-top) + 15px); /* Handle top safe area */
-        }
-         #feed-view { /* Feed view already has centering wrapper */
-            padding-left: 10px;
-            padding-right: 10px;
-            padding-top: calc(env(safe-area-inset-top) + 10px);
-        }
-        /* Message area padding needs careful handling within chat-window flex */
-         #message-area { padding-bottom: 0; } /* Remove general padding, handled by input area */
-
-
-        /* --- Bottom Navigation Bar (Cleaned) --- */
-        #navigation {
-            display: flex; background-color: var(--content-background);
-            padding: 4px 5px; padding-bottom: calc(env(safe-area-inset-bottom) + 4px);
-            flex-shrink: 0; border-top: 1px solid var(--hairline-color); /* Subtle top line */
-            z-index: 10;
-        }
-        .nav-tab {
-            flex-grow: 1; padding: 6px 0; background-color: transparent; border: none; cursor: pointer;
-            color: var(--text-secondary); outline: none; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; gap: 2px; transition: color 0.2s ease; border-radius: var(--border-radius); margin: 0 2px;
-        }
+        #navigation { display: flex; background-color: var(--content-background); padding: 4px 5px; padding-bottom: calc(env(safe-area-inset-bottom) + 4px); flex-shrink: 0; border-top: 1px solid var(--hairline-color); z-index: 10; }
+        .nav-tab { flex-grow: 1; padding: 6px 0; background-color: transparent; border: none; cursor: pointer; color: var(--text-secondary); outline: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: color 0.2s ease; border-radius: var(--border-radius); margin: 0 2px; }
         .nav-tab i { width: 22px; height: 22px; transition: transform 0.1s ease-out; }
         .nav-tab span { font-size: 0.75em; font-weight: 500; margin-top: 2px; }
         .nav-tab.active { color: var(--primary-color); }
-        .nav-tab.active i { transform: scale(1.1); } /* Subtle active icon scale */
+        .nav-tab.active i { transform: scale(1.1); }
         .nav-tab:not(.active):hover { color: var(--text-primary); }
 
-        /* --- Chat View --- */
         #chat-view { flex-direction: row; background-color: var(--content-background); height: 100%; }
-
         #toggle-sidebar-btn { background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 8px; margin-right: 8px; border-radius: 50%; transition: background-color 0.2s ease, color 0.2s ease; line-height: 0; }
         #toggle-sidebar-btn:hover { background-color: var(--hover-bg-subtle); color: var(--text-primary); }
         #toggle-sidebar-btn i { width: 20px; height: 20px; }
 
-        #contact-list-container {
-            width: 300px; min-width: 260px; max-width: 35%; border-right: 1px solid var(--hairline-color);
-            background-color: var(--content-background); flex-shrink: 0;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease-out, border-right-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: 1; display: flex; flex-direction: column; height: 100%;
-            padding-top: env(safe-area-inset-top); overflow: hidden; /* Prevent container scroll */
-        }
+        #contact-list-container { width: 300px; min-width: 260px; max-width: 35%; border-right: 1px solid var(--hairline-color); background-color: var(--content-background); flex-shrink: 0; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease-out, border-right-width 0.3s cubic-bezier(0.4, 0, 0.2, 1); opacity: 1; display: flex; flex-direction: column; height: 100%; padding-top: env(safe-area-inset-top); overflow: hidden; }
         #contact-list-container.collapsed { width: 0px !important; min-width: 0px !important; opacity: 0; overflow: hidden; border-right-width: 0px !important; padding-top: env(safe-area-inset-top); }
         #contact-list-container.collapsed > * { visibility: hidden; }
         #contact-list-container.collapsed #search-contacts-wrapper { display: none; }
@@ -322,10 +288,7 @@
             #settings-view > div { border-radius: 0; box-shadow: none; margin-bottom: 8px; border: none; border-bottom: 1px solid var(--hairline-color); padding: var(--content-padding); }
             #settings-view h2 { padding: var(--content-padding) var(--content-padding) 10px; font-size: 1.4em; margin-bottom: 0; }
 
-            #decorator-view { /* Ensure decorator view also respects safe areas fully */
-                padding-top: env(safe-area-inset-top);
-                padding-bottom: env(safe-area-inset-bottom);
-            }
+            #decorator-view { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
             #item-catalog { bottom: calc(env(safe-area-inset-bottom) + 5px); left: 5px; right: 5px; max-width: calc(100% - 10px); padding: 5px;}
             .catalog-item { width: 60px; }
             #mode-controls { top: calc(env(safe-area-inset-top) + 5px); right: 5px; }
@@ -333,15 +296,6 @@
 
     </style>
 
-    <!-- Three.js Import Map -->
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-            }
-        }
-    </script>
 </head>
 <body>
     <div id="app-container">
@@ -442,8 +396,8 @@
     </div>
 
     <!-- Embedded JavaScript -->
-    <script type="module">
-        // --- Three.js Imports ---
+    <script type="module"> // Changed back to type="module"
+        // --- Three.js Imports (needed now) ---
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -471,11 +425,11 @@
                 { id: Date.now() + 1, user: { name: 'AdventureSeeker', avatar: 'https://i.pravatar.cc/80?u=adv' }, image: 'https://picsum.photos/seed/travelspot/600/500', caption: 'Exploring the hidden gems! This is a longer caption to test how text wrapping and layout behaves on smaller screens and with more content than usual. The views here are breathtaking!', likes: 187, likedByUser: false, timestamp: Date.now() - (86400000 * 1.5)},
                 { id: Date.now() + 2, user: { name: 'CulinaryMaster', avatar: 'https://i.pravatar.cc/80?u=chef' }, image: 'https://picsum.photos/seed/foodieplate/600/450', caption: 'Perfectly seared scallops with a lemon butter sauce. Absolutely divine!', likes: 305, likedByUser: true, timestamp: Date.now() - (86400000 * 0.75)}
             ];
-            // --- IMPORTANT: Add your large newGamesData array back here ---
+            // --- IMPORTANT: Paste your large newGamesData array back here ---
             const newGamesData = [
-              { "title": "Monster Truck Race Arena", "embed": "https://cloud.onlinegames.io/games/2021/3/monster-truck-race-arena/index-og.html", "image": "https://www.onlinegames.io/media/posts/996/responsive/Monster-Truck-Race-Arena-xs.jpg" },
-              { "title": "Kick the Alien", "embed": "https://cloud.onlinegames.io/games/2021/4/kick-the-alien/index-og.html", "image": "https://www.onlinegames.io/media/posts/997/responsive/Kick-the-Alien-xs.jpg" },
-              // ... Add the rest of your game data
+               { "title": "Monster Truck Race Arena", "embed": "https://cloud.onlinegames.io/games/2021/3/monster-truck-race-arena/index-og.html", "image": "https://www.onlinegames.io/media/posts/996/responsive/Monster-Truck-Race-Arena-xs.jpg" },
+               { "title": "Kick the Alien", "embed": "https://cloud.onlinegames.io/games/2021/4/kick-the-alien/index-og.html", "image": "https://www.onlinegames.io/media/posts/997/responsive/Kick-the-Alien-xs.jpg" },
+               // ... Add the rest of your game data
             ];
             // --- End of games data ---
             let games = newGamesData.map((game, index) => ({ id: `game_${index}`, name: game.title, url: game.embed, thumbnailUrl: game.image }));
@@ -510,7 +464,7 @@
             const decoratorEditModeBtn = document.getElementById('edit-mode-btn');
             const decoratorDeleteBtn = document.getElementById('delete-item-btn');
 
-             // --- Helper Functions ---
+            // --- Helper Functions ---
             function encryptMessage(text, key) { if (!key || !text) return text; try { return CryptoJS.AES.encrypt(text, key).toString(); } catch (e) { console.error("Encryption failed:", e); return `Error encrypting: ${text.substring(0,10)}...`; }}
             function decryptMessage(ciphertext, key) { if (!key || !ciphertext) return ciphertext; try { const bytes = CryptoJS.AES.decrypt(ciphertext, key); const originalText = bytes.toString(CryptoJS.enc.Utf8); return originalText || "[Unable to decrypt - possibly wrong key]"; } catch (e) { console.error("Decryption failed:", e); return `[Decryption Error] ${ciphertext.substring(0,10)}...`; }}
             function updateEncryptionKeyStatus() { if(!encryptionKeyInput || !keyStatusMessageEl) return; if (encryptionKey) { encryptionKeyInput.value = encryptionKey; keyStatusMessageEl.textContent = "Client-side encryption key is set."; keyStatusMessageEl.style.color = "var(--secondary-color)"; } else { encryptionKeyInput.value = ''; keyStatusMessageEl.textContent = "Client-side encryption key is NOT set. Applicable messages will not be encrypted."; keyStatusMessageEl.style.color = "var(--destructive-color)"; } if (activeChatContactId) { const contact = masterContacts.find(c => c.id === activeChatContactId); updateChatEncryptionBanner(contact); }}
@@ -550,6 +504,7 @@
                         if(decoratorLoadingIndicator) decoratorLoadingIndicator.style.display = 'block';
                      }
                 }
+                 safeFeatherReplace();
             }
 
             function renderContacts(contactsToDisplay = masterContacts) {
@@ -642,35 +597,48 @@
             let decoratorUniqueItemIdCounter = 0;
             let decoratorSceneInitialized = false;
 
-             const decoratorItemsData = [ // Using online assets
-                 { id: 'horse', name: 'Horse', modelUrl: 'https://unpkg.com/three@0.160.0/examples/models/gltf/Horse.glb', preview: 'https://via.placeholder.com/60x50/cccccc/808080?text=Horse' },
-                 { id: 'flamingo', name: 'Flamingo', modelUrl: 'https://unpkg.com/three@0.160.0/examples/models/gltf/Flamingo.glb', preview: 'https://via.placeholder.com/60x50/F8C8DC/808080?text=Bird' },
-                 { id: 'parrot', name: 'Parrot', modelUrl: 'https://unpkg.com/three@0.160.0/examples/models/gltf/Parrot.glb', preview: 'https://via.placeholder.com/60x50/87CEEB/808080?text=Bird2' },
-                 { id: 'stork', name: 'Stork', modelUrl: 'https://unpkg.com/three@0.160.0/examples/models/gltf/Stork.glb', preview: 'https://via.placeholder.com/60x50/ffffff/808080?text=Stork' },
-             ];
+            const decoratorItemsData = [ // Using verified online assets
+                 { id: 'shiba', name: 'Shiba Dog', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/ShibaInu.glb', preview: 'https://via.placeholder.com/60x50/e0ac69/ffffff?text=Dog' },
+                 { id: 'duck', name: 'Duck', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/Duck/glTF-Binary/Duck.glb', preview: 'https://via.placeholder.com/60x50/fdd835/000000?text=Duck' },
+                 { id: 'helmet', name: 'Helmet', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/DamagedHelmet/glTF-Binary/DamagedHelmet.glb', preview: 'https://via.placeholder.com/60x50/8d6e63/ffffff?text=Helmet' },
+                 { id: 'flower', name: 'Flower', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/Flower/Flower.glb', preview: 'https://via.placeholder.com/60x50/f48fb1/ffffff?text=Flower' },
+            ];
 
             function init3DDecorator() {
-                if (decoratorSceneInitialized || !decoratorCanvas) return;
+                if (decoratorSceneInitialized || !decoratorCanvas) {
+                    console.log("3D Decorator already initialized or canvas not found.");
+                    return;
+                }
                 console.log("Initializing 3D Decorator...");
                 try {
+                    // Use imported THREE, OrbitControls, GLTFLoader, TransformControls
                     decoratorScene = new THREE.Scene();
                     decoratorScene.background = new THREE.Color(0xeeeeee);
+
                     decoratorCamera = new THREE.PerspectiveCamera(60, decoratorCanvas.clientWidth / decoratorCanvas.clientHeight, 0.1, 1000);
                     decoratorCamera.position.set(5, 6, 8);
                     decoratorCamera.lookAt(0, 0, 0);
+
                     decoratorRenderer = new THREE.WebGLRenderer({ canvas: decoratorCanvas, antialias: true });
                     decoratorRenderer.setSize(decoratorCanvas.clientWidth, decoratorCanvas.clientHeight);
                     decoratorRenderer.setPixelRatio(window.devicePixelRatio);
+                    decoratorRenderer.shadowMap.enabled = true;
+
                     const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
                     decoratorScene.add(ambientLight);
                     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
                     directionalLight.position.set(8, 15, 10);
+                    directionalLight.castShadow = true;
+                    directionalLight.shadow.mapSize.width = 1024; directionalLight.shadow.mapSize.height = 1024; directionalLight.shadow.camera.near = 0.5; directionalLight.shadow.camera.far = 50;
                     decoratorScene.add(directionalLight);
+
                     decoratorOrbitControls = new OrbitControls(decoratorCamera, decoratorRenderer.domElement);
                     decoratorOrbitControls.enableDamping = true; decoratorOrbitControls.dampingFactor = 0.05; decoratorOrbitControls.screenSpacePanning = false; decoratorOrbitControls.maxPolarAngle = Math.PI / 2 - 0.05; decoratorOrbitControls.target.set(0, 0.5, 0); decoratorOrbitControls.update();
+
                     decoratorTransformControls = new TransformControls(decoratorCamera, decoratorRenderer.domElement);
                     decoratorTransformControls.addEventListener('dragging-changed', (event) => { decoratorOrbitControls.enabled = !event.value; if (!event.value && decoratorSelectedPlacedObject) sendObjectUpdate(decoratorSelectedPlacedObject.uuid, decoratorSelectedPlacedObject.position, decoratorSelectedPlacedObject.rotation); });
                     decoratorTransformControls.size = 0.75; decoratorScene.add(decoratorTransformControls);
+
                     decoratorRaycaster = new THREE.Raycaster(); decoratorPointer = new THREE.Vector2();
                     create3DRoom(); populate3DCatalog();
                     decoratorCanvas.addEventListener('pointerdown', onDecoratorPointerDown);
@@ -689,8 +657,8 @@
             function populate3DCatalog() { if (!decoratorCatalogContainer) return; decoratorCatalogContainer.innerHTML = ''; decoratorItemsData.forEach(item => { const div = document.createElement('div'); div.className = 'catalog-item'; div.dataset.itemId = item.id; div.innerHTML = `<img src="${item.preview || 'https://via.placeholder.com/60x50/e0e0e0/909090?text=N/A'}" alt="${item.name}"><span>${item.name}</span>`; div.addEventListener('click', () => { if (decoratorCurrentEditMode !== 'edit') return; const currentSelected = decoratorCatalogContainer.querySelector('.selected'); if (currentSelected) currentSelected.classList.remove('selected'); div.classList.add('selected'); decoratorSelectedCatalogItem = item; deselectDecoratorPlacedObject(); }); decoratorCatalogContainer.appendChild(div); }); }
             function setDecoratorEditMode(mode) { if (decoratorCurrentEditMode === mode || !decoratorViewModeBtn || !decoratorEditModeBtn || !decoratorCatalogContainer || !decoratorOrbitControls) return; decoratorCurrentEditMode = mode; decoratorViewModeBtn.classList.toggle('active', mode === 'view'); decoratorEditModeBtn.classList.toggle('active', mode === 'edit'); if (mode === 'view') { deselectDecoratorPlacedObject(); decoratorOrbitControls.enabled = true; decoratorCatalogContainer.style.pointerEvents = 'none'; decoratorCatalogContainer.style.opacity = '0.7'; } else { decoratorOrbitControls.enabled = true; decoratorCatalogContainer.style.pointerEvents = 'auto'; decoratorCatalogContainer.style.opacity = '1'; } }
             function getDecoratorPointerVector(event) { if(!decoratorCanvas) return new THREE.Vector2(0,0); const touch = event.changedTouches ? event.changedTouches[0] : event; const rect = decoratorCanvas.getBoundingClientRect(); decoratorPointer.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1; decoratorPointer.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1; return decoratorPointer; }
-            function onDecoratorPointerDown(event) { event.preventDefault(); if(!decoratorRaycaster || !decoratorCamera || !decoratorScene || !decoratorFloorPlane || !decoratorPlacedItems) return; const pointerVec = getDecoratorPointerVector(event); decoratorRaycaster.setFromCamera(pointerVec, decoratorCamera); if (decoratorCurrentEditMode === 'edit') { const itemMeshes = Object.values(decoratorPlacedItems).map(item => item.threeObject); const intersectsItems = decoratorRaycaster.intersectObjects(itemMeshes, true); if (intersectsItems.length > 0) { let clickedObject = intersectsItems[0].object; while (clickedObject.parent && clickedObject.parent !== decoratorScene) { if (decoratorPlacedItems[clickedObject.uuid]) break; clickedObject = clickedObject.parent; } if (decoratorPlacedItems[clickedObject.uuid]) { selectDecoratorPlacedObject(clickedObject); decoratorSelectedCatalogItem = null; const currentSelectedCatalog = decoratorCatalogContainer.querySelector('.selected'); if (currentSelectedCatalog) currentSelectedCatalog.classList.remove('selected'); return; } } if (decoratorSelectedCatalogItem) { const intersectsFloor = decoratorRaycaster.intersectObject(decoratorFloorPlane); if (intersectsFloor.length > 0) { const intersectionPoint = intersectsFloor[0].point; placeDecoratorItem(decoratorSelectedCatalogItem, intersectionPoint); const currentSelectedCatalog = decoratorCatalogContainer.querySelector('.selected'); if (currentSelectedCatalog) currentSelectedCatalog.classList.remove('selected'); decoratorSelectedCatalogItem = null; } } else { deselectDecoratorPlacedObject(); } } }
-            function placeDecoratorItem(itemData, position) { if (!itemData || !itemData.modelUrl || !decoratorScene) return; showDecoratorLoading(true); const loader = new GLTFLoader(); loader.load(itemData.modelUrl, (gltf) => { const model = gltf.scene; model.position.copy(position); const scale = itemData.id === 'horse' ? 0.01 : 0.02; model.scale.set(scale, scale, scale); const uniqueId = `item_${decoratorUniqueItemIdCounter++}`; model.uuid = uniqueId; decoratorScene.add(model); decoratorPlacedItems[uniqueId] = { threeObject: model, dataId: itemData.id }; selectDecoratorPlacedObject(model); sendObjectUpdate(uniqueId, model.position, model.rotation, itemData.id, true); showDecoratorLoading(false); }, undefined, (error) => { console.error(`GLTFLoader error loading ${itemData.name} from ${itemData.modelUrl}:`, error); showDecoratorLoading(false); alert(`Failed to load ${itemData.name}. Check console for details (CORS or other issues).`); }); }
+            function onDecoratorPointerDown(event) { event.preventDefault(); if(!decoratorRaycaster || !decoratorCamera || !decoratorScene || !decoratorFloorPlane || !decoratorPlacedItems) return; const pointerVec = getDecoratorPointerVector(event); decoratorRaycaster.setFromCamera(pointerVec, decoratorCamera); if (decoratorCurrentEditMode === 'edit') { const itemMeshes = Object.values(decoratorPlacedItems).map(item => item.threeObject); const intersectsItems = decoratorRaycaster.intersectObjects(itemMeshes, true); if (intersectsItems.length > 0) { let clickedObject = intersectsItems[0].object; while (clickedObject.parent && clickedObject.parent !== decoratorScene) { if (decoratorPlacedItems[clickedObject.uuid]) break; clickedObject = clickedObject.parent; } if (decoratorPlacedItems[clickedObject.uuid]) { selectDecoratorPlacedObject(clickedObject); decoratorSelectedCatalogItem = null; const currentSelectedCatalog = decoratorCatalogContainer.querySelector('.selected'); if (currentSelectedCatalog) currentSelectedCatalog.classList.remove('selected'); return; } } if (decoratorSelectedCatalogItem) { if(!decoratorFloorPlane) return; const intersectsFloor = decoratorRaycaster.intersectObject(decoratorFloorPlane); if (intersectsFloor.length > 0) { const intersectionPoint = intersectsFloor[0].point; placeDecoratorItem(decoratorSelectedCatalogItem, intersectionPoint); const currentSelectedCatalog = decoratorCatalogContainer.querySelector('.selected'); if (currentSelectedCatalog) currentSelectedCatalog.classList.remove('selected'); decoratorSelectedCatalogItem = null; } } else { deselectDecoratorPlacedObject(); } } }
+            function placeDecoratorItem(itemData, position) { if (!itemData || !itemData.modelUrl || !decoratorScene) return; showDecoratorLoading(true); const loader = new GLTFLoader(); loader.load(itemData.modelUrl, (gltf) => { const model = gltf.scene; model.position.copy(position); let scale = 1.0; if (itemData.id === 'shiba') scale = 0.5; else if (itemData.id === 'duck') scale = 0.01; else if (itemData.id === 'helmet') scale = 0.5; else if (itemData.id === 'flower') scale = 1.0; model.scale.set(scale, scale, scale); model.traverse( function ( child ) { if ( child.isMesh ) { child.castShadow = true; child.receiveShadow = true; } } ); const uniqueId = `item_${decoratorUniqueItemIdCounter++}`; model.uuid = uniqueId; decoratorScene.add(model); decoratorPlacedItems[uniqueId] = { threeObject: model, dataId: itemData.id }; selectDecoratorPlacedObject(model); sendObjectUpdate(uniqueId, model.position, model.rotation, itemData.id, true); showDecoratorLoading(false); }, undefined, (error) => { console.error(`GLTFLoader error loading ${itemData.name} from ${itemData.modelUrl}:`, error); showDecoratorLoading(false); alert(`Failed to load ${itemData.name}. Check console for details (CORS or network issues).`); }); }
             function selectDecoratorPlacedObject(object) { if (decoratorSelectedPlacedObject === object || !decoratorTransformControls || !decoratorDeleteBtn || !decoratorOrbitControls) return; decoratorSelectedPlacedObject = object; decoratorTransformControls.attach(object); decoratorDeleteBtn.style.display = 'block'; decoratorOrbitControls.enabled = false; }
             function deselectDecoratorPlacedObject() { if (decoratorSelectedPlacedObject && decoratorTransformControls && decoratorDeleteBtn && decoratorOrbitControls) { decoratorTransformControls.detach(); decoratorSelectedPlacedObject = null; decoratorDeleteBtn.style.display = 'none'; decoratorOrbitControls.enabled = true; } }
             function deleteDecoratorSelectedItem() { if (decoratorSelectedPlacedObject && decoratorCurrentEditMode === 'edit' && decoratorScene) { const idToDelete = decoratorSelectedPlacedObject.uuid; deselectDecoratorPlacedObject(); const itemToRemove = decoratorPlacedItems[idToDelete]; if (itemToRemove) { decoratorScene.remove(itemToRemove.threeObject); itemToRemove.threeObject.traverse(child => { if (child.isMesh) { if(child.geometry) child.geometry.dispose(); if (child.material) { if (Array.isArray(child.material)) child.material.forEach(m => {if(m.dispose) m.dispose();}); else if(child.material.dispose) child.material.dispose();}} }); delete decoratorPlacedItems[idToDelete]; sendObjectDelete(idToDelete); console.log(`Deleted item: ${idToDelete}`); } } }
@@ -698,12 +666,13 @@
             function animateDecorator() { if (currentView !== 'decorator' || !decoratorSceneInitialized || !decoratorRenderer || !decoratorCamera) return; requestAnimationFrame(animateDecorator); if(decoratorOrbitControls) decoratorOrbitControls.update(); if(decoratorCanvas && (decoratorCanvas.clientWidth !== decoratorRenderer.domElement.width || decoratorCanvas.clientHeight !== decoratorRenderer.domElement.height)) { decoratorRenderer.setSize(decoratorCanvas.clientWidth, decoratorCanvas.clientHeight, false); decoratorCamera.aspect = decoratorCanvas.clientWidth / decoratorCanvas.clientHeight; decoratorCamera.updateProjectionMatrix(); } decoratorRenderer.render(decoratorScene, decoratorCamera); }
             function sendObjectUpdate(id, position, rotation, dataId = null, isNew = false) { const updateData = { action: isNew ? 'create' : 'update', id, dataId, position: { x: position.x, y: position.y, z: position.z }, rotation: { x: rotation.x, y: rotation.y, z: rotation.z } }; console.log("SIMULATE SEND:", JSON.stringify(updateData)); }
             function sendObjectDelete(id) { const updateData = { action: 'delete', id }; console.log("SIMULATE SEND:", JSON.stringify(updateData)); }
-            function handleIncomingUpdate(data) { /* ... Add implementation if needed for simulation ... */ }
+            function handleIncomingUpdate(data) { console.log("SIMULATE RECEIVE:", JSON.stringify(data)); if(!decoratorScene || !decoratorPlacedItems) return; if (data.action === 'create' || data.action === 'update') { let item = decoratorPlacedItems[data.id]; if (!item && data.action === 'create' && data.dataId) { const itemDefinition = decoratorItemsData.find(d => d.id === data.dataId); if (itemDefinition) { const loader = new GLTFLoader(); loader.load(itemDefinition.modelUrl, (gltf) => { const model = gltf.scene; model.uuid = data.id; model.position.set(data.position.x, data.position.y, data.position.z); model.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z); let scale = 1.0; if (itemDefinition.id === 'shiba') scale = 0.5; else if (itemDefinition.id === 'duck') scale = 0.01; else if (itemDefinition.id === 'helmet') scale = 0.5; else if (itemDefinition.id === 'flower') scale = 1.0; model.scale.set(scale, scale, scale); model.traverse( function ( child ) { if ( child.isMesh ) { child.castShadow = true; child.receiveShadow = true; } } ); decoratorScene.add(model); decoratorPlacedItems[data.id] = { threeObject: model, dataId: data.dataId }; }, undefined, (err) => console.error("Error loading remote create:", err)); } } else if (item) { if (decoratorSelectedPlacedObject !== item.threeObject) { item.threeObject.position.set(data.position.x, data.position.y, data.position.z); item.threeObject.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z); } } } else if (data.action === 'delete') { const itemToRemove = decoratorPlacedItems[data.id]; if (itemToRemove) { if (decoratorSelectedPlacedObject === itemToRemove.threeObject) deselectDecoratorPlacedObject(); decoratorScene.remove(itemToRemove.threeObject); itemToRemove.threeObject.traverse(child => { if (child.isMesh) { if(child.geometry) child.geometry.dispose(); if (child.material) { if (Array.isArray(child.material)) child.material.forEach(m => {if(m.dispose) m.dispose();}); else if(child.material.dispose) child.material.dispose();}} }); delete decoratorPlacedItems[data.id]; } } }
 
             // --- Event Listeners Setup ---
+            // (Ensure all elements exist before adding listeners)
             if (toggleSidebarBtn && contactListContainerEl) { toggleSidebarBtn.addEventListener('click', () => { contactListContainerEl.classList.toggle('collapsed'); const isCollapsed = contactListContainerEl.classList.contains('collapsed'); toggleSidebarBtn.innerHTML = isCollapsed ? feather.icons['arrow-right-circle'].toSvg() : feather.icons['arrow-left-circle'].toSvg(); }); }
             if (searchContactsInput) { searchContactsInput.addEventListener('input', function() { const searchTerm = this.value.toLowerCase().trim(); let filteredContacts = masterContacts; if (searchTerm) { filteredContacts = masterContacts.filter(contact => contact.name.toLowerCase().includes(searchTerm)); } renderContacts(filteredContacts); if (activeChatContactId) { const activeLi = contactListEl.querySelector(`li[data-contact-id="${activeChatContactId}"]`); if (activeLi) activeLi.classList.add('active-contact'); } }); searchContactsInput.addEventListener('keydown', function(e) { if (e.key === 'Escape') { this.value = ''; renderContacts(masterContacts); if (activeChatContactId) { const activeLi = contactListEl.querySelector(`li[data-contact-id="${activeChatContactId}"]`); if (activeLi) activeLi.classList.add('active-contact'); } } }); }
-            navTabs.forEach(tab => tab.addEventListener('click', () => switchView(tab.dataset.view)));
+            navTabs.forEach(tab => { if(tab) tab.addEventListener('click', () => switchView(tab.dataset.view)) });
             if(sendButton) sendButton.addEventListener('click', () => sendMessage(messageInputEl.value.trim()));
             if(messageInputEl) messageInputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(messageInputEl.value.trim()); }});
             if(attachImageChatBtn) attachImageChatBtn.addEventListener('click', () => imageUploadChatInput.click());
