@@ -231,6 +231,134 @@
         #delete-item-btn { background-color: var(--destructive-color) !important; color: white !important; border-color: var(--destructive-color) !important; }
         #delete-item-btn:hover { background-color: #D93025 !important; }
 
+        /* Catalog/Store Toggle */
+        #catalog-store-toggle {
+            position: absolute;
+            bottom: calc(env(safe-area-inset-bottom) + 95px); /* Position above the catalog/store */
+            left: 10px;
+            display: flex;
+            gap: 5px;
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 5px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-subtle);
+            z-index: 5; /* Ensure it's above catalog/store */
+        }
+        #catalog-store-toggle button {
+            padding: 6px 10px;
+            font-size: 0.8em;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        #catalog-store-toggle button.active {
+            background-color: var(--primary-active-bg);
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            font-weight: 500;
+        }
+        #catalog-store-toggle button:not(.active):hover {
+            background-color: var(--hover-bg-subtle);
+            color: var(--text-primary);
+        }
+
+        /* Item Store Styles */
+        #item-store {
+            position: absolute;
+            bottom: calc(env(safe-area-inset-bottom) + 10px);
+            left: 10px;
+            right: 10px;
+            height: 150px; /* Adjust height as needed */
+            background: rgba(240, 240, 240, 0.9);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: var(--border-radius);
+            padding: 10px;
+            box-shadow: var(--shadow-medium);
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Prevent content overflow */
+            z-index: 4; /* Below toggle */
+        }
+        #store-points-display {
+            font-size: 0.9em;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            flex-shrink: 0; /* Prevent shrinking */
+            text-align: center;
+            border-bottom: 1px solid var(--hairline-color);
+            padding-bottom: 5px;
+        }
+        #store-items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 8px;
+            overflow-y: auto; /* Enable vertical scrolling */
+            -webkit-overflow-scrolling: touch;
+            padding-right: 5px; /* Space for scrollbar */
+            flex-grow: 1; /* Allow grid to take remaining space */
+        }
+        .store-item {
+            background: var(--content-background);
+            border: 1px solid var(--hairline-color);
+            border-radius: var(--border-radius);
+            padding: 5px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between; /* Space out content */
+            min-height: 80px; /* Ensure consistent height */
+        }
+        .store-item img {
+            width: 45px;
+            height: 40px;
+            object-fit: contain;
+            margin-bottom: 4px;
+        }
+        .store-item span {
+            font-size: 0.7em;
+            color: var(--text-secondary);
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            margin-bottom: 2px;
+        }
+        .store-item .item-cost {
+            font-size: 0.75em;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+        .store-item.owned {
+            opacity: 0.6;
+            background-color: var(--secondary-content-background);
+            position: relative; /* For checkmark positioning */
+        }
+         .store-item.owned::after { /* Simple checkmark */
+            content: '✔';
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            font-size: 0.9em;
+            color: var(--secondary-color);
+            font-weight: bold;
+         }
+        .store-item.owned .item-cost {
+            text-decoration: line-through;
+            color: var(--text-tertiary);
+        }
+
+
         /* 3D Penguin Tamagotchi Specific Styles */
         #penguin-view { position: relative; width: 100%; height: 100%; overflow: hidden; padding: 0; background-color: #add8e6; /* Light blue, matching JS */ }
         #penguin-canvas { display: block; width: 100%; height: 100%; }
@@ -382,11 +510,12 @@
                     <p id="key-status-message"></p>
                  </div>
                  <div>
-                    <h4>Profile</h4>
-                    <p>Basic profile information.</p>
-                    <label for="username-input">Username:</label>
-                    <input type="text" id="username-input" placeholder="Your Username">
-                 </div>
+                     <h4>Profile</h4>
+                     <p>Basic profile information.</p>
+                     <label for="username-input">Username:</label>
+                     <input type="text" id="username-input" placeholder="Your Username">
+                     <p id="user-active-points-display" style="margin-top: 10px; font-size: 0.9em; color: var(--text-secondary);"></p>
+                  </div>
             </div>
 
             <!-- 3D Penguin Tamagotchi View -->
@@ -400,14 +529,26 @@
                 <canvas id="scene-canvas"></canvas>
                 <div id="decorator-ui">
                     <div id="mode-controls">
-                        <button id="view-mode-btn" class="active">View</button>
-                        <button id="edit-mode-btn">Edit</button>
+                        <button id="view-mode-btn" class="active">View</button> <!-- Renamed from Place -->
+                        <button id="edit-mode-btn">Edit</button> <!-- Renamed from Move/Rotate -->
                         <button id="delete-item-btn" style="display: none;">Delete</button>
-                        <!-- Added Fullscreen Button -->
-                        <button id="fullscreen-btn" title="Toggle Fullscreen"><i data-feather="maximize"></i></button> 
+                        <button id="fullscreen-btn" title="Toggle Fullscreen"><i data-feather="maximize"></i></button>
                     </div>
+                    <!-- Toggle between Catalog and Store -->
+                    <div id="catalog-store-toggle">
+                        <button id="show-catalog-btn" class="active" title="Show Placeable Items">Catalog</button>
+                        <button id="show-store-btn" title="Show All Items & Points">Store</button>
+                    </div>
+                    <!-- Catalog for placing items (visible by default) -->
                     <div id="item-catalog">
                         <!-- Catalog items added by JS -->
+                    </div>
+                    <!-- Store for viewing all items (hidden by default) -->
+                    <div id="item-store" class="hidden">
+                        <p id="store-points-display">Active Points: 0</p>
+                        <div id="store-items-grid">
+                            <!-- Store items added by JS -->
+                        </div>
                     </div>
                 </div>
                 <div id="loading-indicator">Loading...</div>
@@ -498,6 +639,11 @@
             const decoratorViewModeBtn = document.getElementById('view-mode-btn');
             const decoratorEditModeBtn = document.getElementById('edit-mode-btn');
             const decoratorDeleteBtn = document.getElementById('delete-item-btn');
+            const decoratorItemStoreEl = document.getElementById('item-store'); // Added
+            const decoratorStorePointsDisplayEl = document.getElementById('store-points-display'); // Added
+            const decoratorStoreItemsGridEl = document.getElementById('store-items-grid'); // Added
+            const decoratorShowCatalogBtn = document.getElementById('show-catalog-btn'); // Added
+            const decoratorShowStoreBtn = document.getElementById('show-store-btn'); // Added
             // Added: Fullscreen button element selection (will be done later in event listener setup)
 
             // --- 3D Penguin Elements ---
@@ -533,7 +679,10 @@
                          toggleSidebarBtn.innerHTML = isCollapsed ? feather.icons['arrow-right-circle'].toSvg() : feather.icons['arrow-left-circle'].toSvg();
                     }
                 }
-                if (viewName === 'settings') updateEncryptionKeyStatus();
+                if (viewName === 'settings') {
+                    updateEncryptionKeyStatus();
+                    updatePointsDisplay(); // Update points when switching to settings
+                }
                 if (viewName === 'games') renderGamesList();
 
                 if (viewName === 'decorator') {
@@ -546,6 +695,12 @@
                             if(decoratorLoadingIndicator) decoratorLoadingIndicator.style.display = 'block';
                         }
                     } else {
+                        // Ensure catalog is visible and store is hidden on view switch
+                        if(decoratorItemStoreEl) decoratorItemStoreEl.classList.add('hidden');
+                        if(decoratorCatalogContainer) decoratorCatalogContainer.classList.remove('hidden');
+                        if(decoratorShowCatalogBtn) decoratorShowCatalogBtn.classList.add('active');
+                        if(decoratorShowStoreBtn) decoratorShowStoreBtn.classList.remove('active');
+                        updateStorePointsDisplay(); // Update points display in store (even if hidden)
                         animateDecorator(); // Restart animation loop if already initialized
                     }
                 }
@@ -658,13 +813,69 @@
             const decoratorClock = new THREE.Clock(); // For grass animation timing
             const animatedGrassAssets = { material: null, shader: null }; // To store grass assets for animation updates
 
+            // --- User Progress for Decorator Items ---
+            let unlockedItemIds = [];
+            let userActivePoints = 0;
+            const USER_PROGRESS_KEY_ITEMS = 'decoratorUnlockedItems';
+            const USER_PROGRESS_KEY_POINTS = 'decoratorActivePoints';
 
-             const decoratorItemsData = [ // Using corrected online asset URLs
-                 { id: 'shiba', name: 'Shiba Dog', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/ShibaInu.glb', preview: 'https://via.placeholder.com/60x50.png?text=Dog' },
-                 { id: 'duck', name: 'Duck', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/Duck/glTF-Binary/Duck.glb', preview: 'https://via.placeholder.com/60x50.png?text=Duck' },
-                 { id: 'helmet', name: 'Helmet', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/DamagedHelmet/glTF-Binary/DamagedHelmet.glb', preview: 'https://via.placeholder.com/60x50.png?text=Helmet' },
-                 { id: 'flower', name: 'Flower', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/Flower/Flower.glb', preview: 'https://via.placeholder.com/60x50.png?text=Flower' },
-             ];
+
+            const decoratorItemsData = [ // Master list of all available items
+                // Existing items with new properties
+                { id: 'shiba', name: 'Shiba Dog', category: 'pets', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/ShibaInu.glb', preview: 'https://via.placeholder.com/60x50.png?text=Dog', unlockPoints: 0 },
+                { id: 'duck', name: 'Duck Model', category: 'pets', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/Duck/glTF-Binary/Duck.glb', preview: 'https://via.placeholder.com/60x50.png?text=Duck', unlockPoints: 50 }, // Example: unlocks at 50 points
+                { id: 'helmet', name: 'SciFi Helmet', category: 'misc', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/DamagedHelmet/glTF-Binary/DamagedHelmet.glb', preview: 'https://via.placeholder.com/60x50.png?text=Helmet', unlockPoints: 100 },
+                { id: 'flower', name: 'Simple Flower', category: 'plants', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/Flower/Flower.glb', preview: 'https://via.placeholder.com/60x50.png?text=Flower', unlockPoints: 0 },
+                // New items
+                { id: 'toycar', name: 'Toy Car', category: 'vehicles', modelUrl: 'https://rawcdn.githack.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMilkTruck/glTF-Binary/CesiumMilkTruck.glb', preview: 'https://via.placeholder.com/60x50.png?text=Car', unlockPoints: 200 },
+                { id: 'rubberduckyboat', name: 'Ducky Boat', category: 'vehicles', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/Duck/glTF-Binary/Duck.glb', preview: 'https://via.placeholder.com/60x50.png?text=Boat', unlockPoints: 300 }, // Reusing duck model
+                { id: 'simplechair', name: 'Simple Chair', category: 'furniture', modelUrl: 'https://rawcdn.githack.com/KhronosGroup/glTF-Sample-Models/master/2.0/Avocado/glTF-Binary/Avocado.glb', preview: 'https://via.placeholder.com/60x50.png?text=Chair', unlockPoints: 150 }, // Reusing avocado model as placeholder
+                { id: 'barrel', name: 'Barrel', category: 'misc', modelUrl: 'barrel/scene.gltf', preview: 'https://via.placeholder.com/60x50.png?text=Barrel', unlockPoints: 75 },
+            ];
+
+            function loadUserProgress() {
+                const storedItems = localStorage.getItem(USER_PROGRESS_KEY_ITEMS);
+                if (storedItems) {
+                    try {
+                        unlockedItemIds = JSON.parse(storedItems);
+                        if (!Array.isArray(unlockedItemIds)) unlockedItemIds = [];
+                    } catch (e) {
+                        console.error("Error parsing unlocked items from localStorage:", e);
+                        unlockedItemIds = [];
+                    }
+                } else {
+                    unlockedItemIds = [];
+                }
+
+                const storedPoints = localStorage.getItem(USER_PROGRESS_KEY_POINTS);
+                if (storedPoints) {
+                    userActivePoints = parseInt(storedPoints, 10) || 0;
+                } else {
+                    userActivePoints = 0;
+                }
+                console.log(`Loaded user progress: ${userActivePoints} points, ${unlockedItemIds.length} items unlocked initially.`);
+            }
+
+            function saveUserProgress() {
+                localStorage.setItem(USER_PROGRESS_KEY_ITEMS, JSON.stringify(unlockedItemIds));
+                localStorage.setItem(USER_PROGRESS_KEY_POINTS, userActivePoints.toString());
+                console.log(`Saved user progress: ${userActivePoints} points, ${unlockedItemIds.length} items unlocked.`);
+            }
+
+            function checkInitialUnlocks() {
+                let newUnlocks = false;
+                decoratorItemsData.forEach(item => {
+                    if (item.unlockPoints <= userActivePoints && !unlockedItemIds.includes(item.id)) {
+                        unlockedItemIds.push(item.id);
+                        newUnlocks = true;
+                        console.log(`Unlocked item: ${item.name} (Points: ${item.unlockPoints})`);
+                    }
+                });
+                if (newUnlocks) {
+                    saveUserProgress(); // Save if new items were unlocked
+                }
+            }
+
 
             function init3DDecorator() {
                 if (decoratorSceneInitialized || !decoratorCanvas) {
@@ -727,7 +938,32 @@
                 decoratorFloorPlane.name = "floor";
                 decoratorScene.add(decoratorFloorPlane);
             }
-            function populate3DCatalog() { if (!decoratorCatalogContainer) return; decoratorCatalogContainer.innerHTML = ''; decoratorItemsData.forEach(item => { const div = document.createElement('div'); div.className = 'catalog-item'; div.dataset.itemId = item.id; div.innerHTML = `<img src="${item.preview || 'https://via.placeholder.com/60x50/e0e0e0/909090?text=N/A'}" alt="${item.name}"><span>${item.name}</span>`; div.addEventListener('click', () => { if (decoratorCurrentEditMode !== 'edit') return; const currentSelected = decoratorCatalogContainer.querySelector('.selected'); if (currentSelected) currentSelected.classList.remove('selected'); div.classList.add('selected'); decoratorSelectedCatalogItem = item; deselectDecoratorPlacedObject(); }); decoratorCatalogContainer.appendChild(div); }); }
+            function populate3DCatalog() {
+                if (!decoratorCatalogContainer) return;
+                decoratorCatalogContainer.innerHTML = '';
+                const itemsToShow = decoratorItemsData.filter(item => unlockedItemIds.includes(item.id));
+
+                if (itemsToShow.length === 0) {
+                    decoratorCatalogContainer.innerHTML = '<p style="padding: 10px; font-size: 0.8em; color: var(--text-secondary); text-align: center;">No items unlocked yet. Keep using the app to earn more!</p>';
+                    return;
+                }
+
+                itemsToShow.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'catalog-item';
+                    div.dataset.itemId = item.id;
+                    div.innerHTML = `<img src="${item.preview || 'https://via.placeholder.com/60x50/e0e0e0/909090?text=N/A'}" alt="${item.name}"><span>${item.name}</span>`;
+                    div.addEventListener('click', () => {
+                        if (decoratorCurrentEditMode !== 'edit') return;
+                        const currentSelected = decoratorCatalogContainer.querySelector('.selected');
+                        if (currentSelected) currentSelected.classList.remove('selected');
+                        div.classList.add('selected');
+                        decoratorSelectedCatalogItem = item;
+                        deselectDecoratorPlacedObject();
+                    });
+                    decoratorCatalogContainer.appendChild(div);
+                });
+            }
             function setDecoratorEditMode(mode) { if (decoratorCurrentEditMode === mode || !decoratorViewModeBtn || !decoratorEditModeBtn || !decoratorCatalogContainer || !decoratorOrbitControls) return; decoratorCurrentEditMode = mode; decoratorViewModeBtn.classList.toggle('active', mode === 'view'); decoratorEditModeBtn.classList.toggle('active', mode === 'edit'); if (mode === 'view') { deselectDecoratorPlacedObject(); decoratorOrbitControls.enabled = true; decoratorCatalogContainer.style.pointerEvents = 'none'; decoratorCatalogContainer.style.opacity = '0.7'; } else { decoratorOrbitControls.enabled = true; decoratorCatalogContainer.style.pointerEvents = 'auto'; decoratorCatalogContainer.style.opacity = '1'; } }
             function getDecoratorPointerVector(event) { if(!decoratorCanvas) return new THREE.Vector2(0,0); const touch = event.changedTouches ? event.changedTouches[0] : event; const rect = decoratorCanvas.getBoundingClientRect(); decoratorPointer.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1; decoratorPointer.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1; return decoratorPointer; }
             function onDecoratorPointerDown(event) { event.preventDefault(); if(!decoratorRaycaster || !decoratorCamera || !decoratorScene || !decoratorFloorPlane || !decoratorPlacedItems) return; const pointerVec = getDecoratorPointerVector(event); decoratorRaycaster.setFromCamera(pointerVec, decoratorCamera); if (decoratorCurrentEditMode === 'edit') { const itemMeshes = Object.values(decoratorPlacedItems).map(item => item.threeObject); const intersectsItems = decoratorRaycaster.intersectObjects(itemMeshes, true); if (intersectsItems.length > 0) { let clickedObject = intersectsItems[0].object; while (clickedObject.parent && clickedObject.parent !== decoratorScene) { if (decoratorPlacedItems[clickedObject.uuid]) break; clickedObject = clickedObject.parent; } if (decoratorPlacedItems[clickedObject.uuid]) { selectDecoratorPlacedObject(clickedObject); decoratorSelectedCatalogItem = null; const currentSelectedCatalog = decoratorCatalogContainer.querySelector('.selected'); if (currentSelectedCatalog) currentSelectedCatalog.classList.remove('selected'); return; } } if (decoratorSelectedCatalogItem) { if(!decoratorFloorPlane) return; const intersectsFloor = decoratorRaycaster.intersectObject(decoratorFloorPlane); if (intersectsFloor.length > 0) { const intersectionPoint = intersectsFloor[0].point; placeDecoratorItem(decoratorSelectedCatalogItem, intersectionPoint); const currentSelectedCatalog = decoratorCatalogContainer.querySelector('.selected'); if (currentSelectedCatalog) currentSelectedCatalog.classList.remove('selected'); decoratorSelectedCatalogItem = null; } } else { deselectDecoratorPlacedObject(); } } }
@@ -742,9 +978,13 @@
                 /* 1️⃣  SCALE FIRST so BBox uses final size  */
                 let scale = 1;
                 if (itemData.id === 'shiba')  scale = 0.5;
-                if (itemData.id === 'duck')   scale = 0.15;
-                if (itemData.id === 'helmet') scale = 0.5;
-                if (itemData.id === 'flower') scale = 1.0;
+                else if (itemData.id === 'duck')   scale = 0.15;
+                else if (itemData.id === 'helmet') scale = 0.5;
+                else if (itemData.id === 'flower') scale = 1.0;
+                else if (itemData.id === 'toycar') scale = 0.008; // Example scale for CesiumMilkTruck
+                else if (itemData.id === 'rubberduckyboat') scale = 0.2; // Slightly larger duck
+                else if (itemData.id === 'simplechair') scale = 2.0; // Example scale for Avocado (as chair)
+                else if (itemData.id === 'barrel') scale = 0.5; // Estimated scale for barrel
                 model.scale.set(scale, scale, scale);
                 model.updateMatrixWorld(true); // Ensure matrix is updated for bounding box calculation
 
@@ -828,9 +1068,13 @@
                                  model.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z);
                                  let scale = 1.0;
                                  if (itemDefinition.id === 'shiba') scale = 0.5;
-                                 else if (itemDefinition.id === 'duck') scale = 0.15; // Consistent scale
+                                 else if (itemDefinition.id === 'duck') scale = 0.15;
                                  else if (itemDefinition.id === 'helmet') scale = 0.5;
                                  else if (itemDefinition.id === 'flower') scale = 1.0;
+                                 else if (itemDefinition.id === 'toycar') scale = 0.008;
+                                 else if (itemDefinition.id === 'rubberduckyboat') scale = 0.2;
+                                 else if (itemDefinition.id === 'simplechair') scale = 2.0;
+                                 else if (itemDefinition.id === 'barrel') scale = 0.5; // Estimated scale for barrel
                                  model.scale.set(scale, scale, scale);
                                  model.traverse( function ( child ) { if ( child.isMesh ) { child.castShadow = true; child.receiveShadow = true; } } );
                                  decoratorScene.add(model);
@@ -1141,6 +1385,23 @@
             if(videoToggleBtn) videoToggleBtn.addEventListener('click', toggleVideo);
             if(closeGameButton) closeGameButton.addEventListener('click', closeGame);
 
+            // Decorator Catalog/Store Toggle Listeners
+            if (decoratorShowCatalogBtn && decoratorShowStoreBtn && decoratorCatalogContainer && decoratorItemStoreEl) {
+                decoratorShowCatalogBtn.addEventListener('click', () => {
+                    decoratorItemStoreEl.classList.add('hidden');
+                    decoratorCatalogContainer.classList.remove('hidden');
+                    decoratorShowCatalogBtn.classList.add('active');
+                    decoratorShowStoreBtn.classList.remove('active');
+                });
+                decoratorShowStoreBtn.addEventListener('click', () => {
+                    decoratorCatalogContainer.classList.add('hidden');
+                    decoratorItemStoreEl.classList.remove('hidden');
+                    decoratorShowStoreBtn.classList.add('active');
+                    decoratorShowCatalogBtn.classList.remove('active');
+                    populateItemStore(); // Populate store when shown
+                });
+            }
+
             // Fullscreen API Button Handler
             const fullscreenBtn = document.getElementById('fullscreen-btn');
             if (fullscreenBtn) {
@@ -1182,9 +1443,96 @@
             }
 
 
+            // --- Activity Points & Item Unlocking Logic ---
+            let activityIntervalId = null;
+            const ACTIVITY_POINT_INTERVAL = 60000; // 1 minute in milliseconds
+            const POINTS_PER_INTERVAL = 10; // Points awarded per active interval
+
+            function updatePointsDisplay() {
+                const pointsDisplayEl = document.getElementById('user-active-points-display');
+                if (pointsDisplayEl) {
+                    pointsDisplayEl.textContent = `Active Points: ${userActivePoints.toLocaleString()}`;
+                }
+             }
+
+             function updateStorePointsDisplay() { // Updates store view display
+                 if (decoratorStorePointsDisplayEl) {
+                     decoratorStorePointsDisplayEl.textContent = `Your Points: ${userActivePoints.toLocaleString()}`;
+                 }
+             }
+
+            function checkAndUnlockNewItems() {
+                let newItemsUnlockedThisCheck = false;
+                decoratorItemsData.forEach(item => {
+                    if (!unlockedItemIds.includes(item.id) && userActivePoints >= item.unlockPoints) {
+                        unlockedItemIds.push(item.id);
+                        newItemsUnlockedThisCheck = true;
+                        console.log(`NEW UNLOCK: ${item.name} (Requires: ${item.unlockPoints}, Current: ${userActivePoints})`);
+                        // Future: Add a visual notification to the user
+                    }
+                });
+                return newItemsUnlockedThisCheck;
+            }
+
+            function incrementActivePoints() {
+                if (document.hidden) { // Only increment if tab is visible/active
+                    // console.log("Tab hidden, not incrementing points.");
+                    return;
+                }
+                userActivePoints += POINTS_PER_INTERVAL;
+                console.log(`User active. Points: ${userActivePoints}`);
+                const newItemsWereUnlocked = checkAndUnlockNewItems();
+                saveUserProgress(); // Save points and any newly unlocked items
+
+                if (newItemsWereUnlocked && currentView === 'decorator') {
+                    populate3DCatalog(); // Refresh placeable items catalog
+                    console.log("Decorator catalog refreshed due to new unlocks.");
+                }
+                if (currentView === 'settings') {
+                    updatePointsDisplay(); // Refresh points display in settings view
+                }
+                 // Also refresh store if it's currently visible
+                 if (currentView === 'decorator' && decoratorItemStoreEl && !decoratorItemStoreEl.classList.contains('hidden')) {
+                     populateItemStore();
+                 }
+            }
+
+             function populateItemStore() {
+                 if (!decoratorStoreItemsGridEl || !decoratorStorePointsDisplayEl) return;
+                 decoratorStoreItemsGridEl.innerHTML = ''; // Clear previous items
+                 updateStorePointsDisplay(); // Update points display at the top
+
+                 decoratorItemsData.forEach(item => {
+                     const storeItemEl = document.createElement('div');
+                     storeItemEl.className = 'store-item';
+                     const isOwned = unlockedItemIds.includes(item.id);
+                     if (isOwned) {
+                         storeItemEl.classList.add('owned');
+                     }
+
+                     storeItemEl.innerHTML = `
+                         <img src="${item.preview || 'https://via.placeholder.com/60x50/e0e0e0/909090?text=N/A'}" alt="${item.name}">
+                         <span>${item.name}</span>
+                         <span class="item-cost">${item.unlockPoints > 0 ? `${item.unlockPoints.toLocaleString()} pts` : 'Free'}</span>
+                     `;
+                     // Maybe add click listener later for details or purchase attempt?
+                     decoratorStoreItemsGridEl.appendChild(storeItemEl);
+                 });
+             }
+
+
+            function startActivityTracking() {
+                if (activityIntervalId) clearInterval(activityIntervalId); // Clear existing interval if any
+                activityIntervalId = setInterval(incrementActivePoints, ACTIVITY_POINT_INTERVAL);
+                console.log("Activity tracking started.");
+            }
+
             // --- Initial Setup ---
+            loadUserProgress(); // Load saved progress first
+            checkInitialUnlocks(); // Unlock items based on loaded points
             updateEncryptionKeyStatus();
             switchView('chat'); // Set initial view
+            startActivityTracking(); // Start tracking user activity for points
              // Initial icon replacement
              safeFeatherReplace(); 
 
