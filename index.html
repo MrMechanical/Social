@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>SocialFusion Pro - ES Module Fix</title>
+    <title>SocialFusion Pro - Fixed 3D Placement</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
 
-    <!-- RESTORED Three.js Import Map -->
+    <!-- Three.js Import Map -->
     <script type="importmap">
         {
             "imports": {
@@ -17,7 +17,7 @@
         }
     </script>
 
-    <!-- Embedded CSS (Keep the full CSS from the previous step) -->
+    <!-- Embedded CSS -->
     <style>
         :root {
             /* Core Palette */
@@ -293,7 +293,6 @@
             .catalog-item { width: 60px; }
             #mode-controls { top: calc(env(safe-area-inset-top) + 5px); right: 5px; }
         }
-
     </style>
 
 </head>
@@ -396,14 +395,13 @@
     </div>
 
     <!-- Embedded JavaScript -->
-    <script type="module"> // Changed back to type="module"
-        // --- Three.js Imports (needed now) ---
+    <script type="module"> // Using type="module"
+        // --- Three.js Imports ---
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { TransformControls } from 'three/addons/controls/TransformControls.js';
 
-        // --- Wait for DOM ---
         document.addEventListener('DOMContentLoaded', () => {
             function safeFeatherReplace() { try { feather.replace(); } catch (e) { console.error("Feather icons could not be initialized:", e); }}
             safeFeatherReplace();
@@ -425,8 +423,7 @@
                 { id: Date.now() + 1, user: { name: 'AdventureSeeker', avatar: 'https://i.pravatar.cc/80?u=adv' }, image: 'https://picsum.photos/seed/travelspot/600/500', caption: 'Exploring the hidden gems! This is a longer caption to test how text wrapping and layout behaves on smaller screens and with more content than usual. The views here are breathtaking!', likes: 187, likedByUser: false, timestamp: Date.now() - (86400000 * 1.5)},
                 { id: Date.now() + 2, user: { name: 'CulinaryMaster', avatar: 'https://i.pravatar.cc/80?u=chef' }, image: 'https://picsum.photos/seed/foodieplate/600/450', caption: 'Perfectly seared scallops with a lemon butter sauce. Absolutely divine!', likes: 305, likedByUser: true, timestamp: Date.now() - (86400000 * 0.75)}
             ];
-            // --- IMPORTANT: Paste your large newGamesData array back here ---
-            const newGamesData = [
+            const newGamesData = [ // --- IMPORTANT: Paste your large newGamesData array back here ---
                { "title": "Monster Truck Race Arena", "embed": "https://cloud.onlinegames.io/games/2021/3/monster-truck-race-arena/index-og.html", "image": "https://www.onlinegames.io/media/posts/996/responsive/Monster-Truck-Race-Arena-xs.jpg" },
                { "title": "Kick the Alien", "embed": "https://cloud.onlinegames.io/games/2021/4/kick-the-alien/index-og.html", "image": "https://www.onlinegames.io/media/posts/997/responsive/Kick-the-Alien-xs.jpg" },
                // ... Add the rest of your game data
@@ -464,13 +461,13 @@
             const decoratorEditModeBtn = document.getElementById('edit-mode-btn');
             const decoratorDeleteBtn = document.getElementById('delete-item-btn');
 
-            // --- Helper Functions ---
-            function encryptMessage(text, key) { if (!key || !text) return text; try { return CryptoJS.AES.encrypt(text, key).toString(); } catch (e) { console.error("Encryption failed:", e); return `Error encrypting: ${text.substring(0,10)}...`; }}
-            function decryptMessage(ciphertext, key) { if (!key || !ciphertext) return ciphertext; try { const bytes = CryptoJS.AES.decrypt(ciphertext, key); const originalText = bytes.toString(CryptoJS.enc.Utf8); return originalText || "[Unable to decrypt - possibly wrong key]"; } catch (e) { console.error("Decryption failed:", e); return `[Decryption Error] ${ciphertext.substring(0,10)}...`; }}
-            function updateEncryptionKeyStatus() { if(!encryptionKeyInput || !keyStatusMessageEl) return; if (encryptionKey) { encryptionKeyInput.value = encryptionKey; keyStatusMessageEl.textContent = "Client-side encryption key is set."; keyStatusMessageEl.style.color = "var(--secondary-color)"; } else { encryptionKeyInput.value = ''; keyStatusMessageEl.textContent = "Client-side encryption key is NOT set. Applicable messages will not be encrypted."; keyStatusMessageEl.style.color = "var(--destructive-color)"; } if (activeChatContactId) { const contact = masterContacts.find(c => c.id === activeChatContactId); updateChatEncryptionBanner(contact); }}
-            function updateChatEncryptionBanner(contact) { if(!chatEncryptionStatusEl) return; if (contact && contact.name !== 'Echo Bot') { chatEncryptionStatusEl.classList.toggle('hidden', !encryptionKey); chatEncryptionStatusEl.textContent = encryptionKey ? `🔒 Messages client-side encrypted.` : `⚠️ No client-side key. Messages not encrypted.`; } else { chatEncryptionStatusEl.classList.add('hidden'); }}
-            function formatTimestamp(timestamp) { return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });}
-            function formatPostTimestamp(timestamp) { const now = new Date(); const postDate = new Date(timestamp); const diffSeconds = Math.round((now - postDate) / 1000); if (diffSeconds < 60) return "Just now"; const diffMinutes = Math.round(diffSeconds / 60); if (diffMinutes < 60) return `${diffMinutes}m ago`; const diffHours = Math.round(diffMinutes / 60); if (diffHours < 24) return `${diffHours}h ago`; const diffDays = Math.round(diffHours / 24); if (diffDays < 7) return `${diffDays}d ago`; return postDate.toLocaleDateString(); }
+             // --- Helper Functions ---
+             function encryptMessage(text, key) { if (!key || !text) return text; try { return CryptoJS.AES.encrypt(text, key).toString(); } catch (e) { console.error("Encryption failed:", e); return `Error encrypting: ${text.substring(0,10)}...`; }}
+             function decryptMessage(ciphertext, key) { if (!key || !ciphertext) return ciphertext; try { const bytes = CryptoJS.AES.decrypt(ciphertext, key); const originalText = bytes.toString(CryptoJS.enc.Utf8); return originalText || "[Unable to decrypt - possibly wrong key]"; } catch (e) { console.error("Decryption failed:", e); return `[Decryption Error] ${ciphertext.substring(0,10)}...`; }}
+             function updateEncryptionKeyStatus() { if(!encryptionKeyInput || !keyStatusMessageEl) return; if (encryptionKey) { encryptionKeyInput.value = encryptionKey; keyStatusMessageEl.textContent = "Client-side encryption key is set."; keyStatusMessageEl.style.color = "var(--secondary-color)"; } else { encryptionKeyInput.value = ''; keyStatusMessageEl.textContent = "Client-side encryption key is NOT set. Applicable messages will not be encrypted."; keyStatusMessageEl.style.color = "var(--destructive-color)"; } if (activeChatContactId) { const contact = masterContacts.find(c => c.id === activeChatContactId); updateChatEncryptionBanner(contact); }}
+             function updateChatEncryptionBanner(contact) { if(!chatEncryptionStatusEl) return; if (contact && contact.name !== 'Echo Bot') { chatEncryptionStatusEl.classList.toggle('hidden', !encryptionKey); chatEncryptionStatusEl.textContent = encryptionKey ? `🔒 Messages client-side encrypted.` : `⚠️ No client-side key. Messages not encrypted.`; } else { chatEncryptionStatusEl.classList.add('hidden'); }}
+             function formatTimestamp(timestamp) { return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });}
+             function formatPostTimestamp(timestamp) { const now = new Date(); const postDate = new Date(timestamp); const diffSeconds = Math.round((now - postDate) / 1000); if (diffSeconds < 60) return "Just now"; const diffMinutes = Math.round(diffSeconds / 60); if (diffMinutes < 60) return `${diffMinutes}m ago`; const diffHours = Math.round(diffMinutes / 60); if (diffHours < 24) return `${diffHours}h ago`; const diffDays = Math.round(diffHours / 24); if (diffDays < 7) return `${diffDays}d ago`; return postDate.toLocaleDateString(); }
 
             // --- UI & View Functions ---
             function switchView(viewName) {
@@ -578,7 +575,7 @@
             }
             function toggleLike(postId) {const p=feedPosts.find(post=>post.id==postId);if(p){p.likedByUser=!p.likedByUser;p.likes+=p.likedByUser?1:-1;renderFeed();}}
             function createPost(imageUrl,caption){if(!imageUrl&&!caption){alert("Please select an image or write a caption.");return;}const nP={id:Date.now(),user:{name:'You (Demo)',avatar:'https://i.pravatar.cc/80?u=demoUser'},image:imageUrl,caption:caption||"",likes:0,likedByUser:false,timestamp:Date.now()};feedPosts.push(nP);renderFeed();if(createPostImageInput)createPostImageInput.value='';if(createPostCaptionInput)createPostCaptionInput.value='';}
-            function renderGamesList() { if (!gameListContainerEl) return; gameListContainerEl.innerHTML = ''; games.forEach(game => { const gameEl = document.createElement('div'); gameEl.classList.add('game-thumbnail'); gameEl.dataset.gameUrl = game.url; gameEl.innerHTML = `<img src="${game.thumbnailUrl}" alt="${game.name}" onerror="this.src='https://via.placeholder.com/150/CCCCCC/FFFFFF?Text=No+Image'; this.onerror=null;"><p title="${game.name}">${game.name}</p>`; gameEl.addEventListener('click', () => loadGame(game.url, game.name)); gameListContainerEl.appendChild(gameEl); }); if(closeGameButton) closeGameButton.style.display = 'none'; if(gameIframeContainerEl) gameIframeContainerEl.style.display = 'none'; if(gameIframeEl) gameIframeEl.src = 'about:blank'; gameListContainerEl.style.display = 'flex'; if(gamesViewHeading) gamesViewHeading.style.display = 'block'; if(gamesViewIntroP) gamesViewIntroP.style.display = 'block'; }
+            function renderGamesList() { if (!gameListContainerEl) return; gameListContainerEl.innerHTML = ''; games.forEach(game => { const gameEl = document.createElement('div'); gameEl.classList.add('game-thumbnail'); gameEl.dataset.gameUrl = game.url; gameEl.innerHTML = `<img src="${game.thumbnailUrl}" alt="${game.name}" onerror="this.src='https://via.placeholder.com/150/CCCCCC/FFFFFF?Text=No+Image'; this.onerror=null;"><p title="${game.name}">${game.name}</p>`; gameEl.addEventListener('click', () => loadGame(game.url, game.name)); gameListContainerEl.appendChild(gameEl); }); if(closeGameButton) closeGameButton.style.display = 'none'; if(gameIframeContainerEl) gameIframeContainerEl.style.display = 'none'; if(gameIframeEl) gameIframeEl.src = 'about:blank'; if(gameListContainerEl) gameListContainerEl.style.display = 'flex'; if(gamesViewHeading) gamesViewHeading.style.display = 'block'; if(gamesViewIntroP) gamesViewIntroP.style.display = 'block'; }
             function loadGame(gameUrl, gameName) { if(!gameIframeEl || !gameIframeContainerEl || !gameListContainerEl || !closeGameButton) return; gameIframeEl.src = gameUrl; gameIframeContainerEl.style.display = 'block'; gameListContainerEl.style.display = 'none'; closeGameButton.style.display = 'block'; if(gamesViewHeading) gamesViewHeading.style.display = 'none'; if(gamesViewIntroP) gamesViewIntroP.style.display = 'none'; }
             function closeGame() { if(!gameIframeEl || !gameIframeContainerEl || !gameListContainerEl || !closeGameButton) return; gameIframeEl.src = 'about:blank'; gameIframeContainerEl.style.display = 'none'; gameListContainerEl.style.display = 'flex'; closeGameButton.style.display = 'none'; if(gamesViewHeading) gamesViewHeading.style.display = 'block'; if(gamesViewIntroP) gamesViewIntroP.style.display = 'block'; }
             async function startVideoCall() {if(isVideoCallActive || !videoCallOverlay || !videoStatusEl || !localVideoEl || !remoteVideoEl)return;isVideoCallActive=true;videoCallOverlay.classList.add('active');videoStatusEl.textContent="Accessing camera/mic...";feather.replace();try{localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});localVideoEl.srcObject=localStream;videoStatusEl.textContent="Local media connected. Loopback setup...";peerConnection=new RTCPeerConnection(iceServers);localStream.getTracks().forEach(t=>peerConnection.addTrack(t,localStream));peerConnection.ontrack=e=>{if(e.streams&&e.streams[0]){remoteVideoEl.srcObject=e.streams[0];videoStatusEl.textContent="Video Loopback Active";}else if(!remoteVideoEl.srcObject&&e.track.kind==='video'){remoteVideoEl.srcObject=new MediaStream([e.track]);videoStatusEl.textContent="Video Loopback Active (Track)";}};peerConnection.onicecandidate=e=>{if(e.candidate)peerConnection.addIceCandidate(e.candidate).catch(err=>console.error("ICE add error",err));};const o=await peerConnection.createOffer();await peerConnection.setLocalDescription(o);await peerConnection.setRemoteDescription(o);}catch(err){console.error("Video call error:",err);videoStatusEl.textContent=`Error: ${err.message}`;}}
@@ -596,13 +593,16 @@
             const decoratorPlacedItems = {};
             let decoratorUniqueItemIdCounter = 0;
             let decoratorSceneInitialized = false;
+            const decoratorClock = new THREE.Clock(); // For grass animation timing
+            const animatedGrassAssets = { material: null, shader: null }; // To store grass assets for animation updates
 
-            const decoratorItemsData = [ // Using verified online assets
-                 { id: 'shiba', name: 'Shiba Dog', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/ShibaInu.glb', preview: 'https://via.placeholder.com/60x50/e0ac69/ffffff?text=Dog' },
-                 { id: 'duck', name: 'Duck', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/Duck/glTF-Binary/Duck.glb', preview: 'https://via.placeholder.com/60x50/fdd835/000000?text=Duck' },
-                 { id: 'helmet', name: 'Helmet', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/DamagedHelmet/glTF-Binary/DamagedHelmet.glb', preview: 'https://via.placeholder.com/60x50/8d6e63/ffffff?text=Helmet' },
-                 { id: 'flower', name: 'Flower', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/Flower/Flower.glb', preview: 'https://via.placeholder.com/60x50/f48fb1/ffffff?text=Flower' },
-            ];
+
+             const decoratorItemsData = [ // Using corrected online asset URLs
+                 { id: 'shiba', name: 'Shiba Dog', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/ShibaInu.glb', preview: 'https://via.placeholder.com/60x50.png?text=Dog' },
+                 { id: 'duck', name: 'Duck', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/Duck/glTF-Binary/Duck.glb', preview: 'https://via.placeholder.com/60x50.png?text=Duck' },
+                 { id: 'helmet', name: 'Helmet', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/DamagedHelmet/glTF-Binary/DamagedHelmet.glb', preview: 'https://via.placeholder.com/60x50.png?text=Helmet' },
+                 { id: 'flower', name: 'Flower', modelUrl: 'https://rawcdn.githack.com/mrdoob/three.js/r129/examples/models/gltf/Flower/Flower.glb', preview: 'https://via.placeholder.com/60x50.png?text=Flower' },
+             ];
 
             function init3DDecorator() {
                 if (decoratorSceneInitialized || !decoratorCanvas) {
@@ -641,6 +641,7 @@
 
                     decoratorRaycaster = new THREE.Raycaster(); decoratorPointer = new THREE.Vector2();
                     create3DRoom(); populate3DCatalog();
+                    createAnimatedGrass(decoratorScene, 10); // Added grass
                     decoratorCanvas.addEventListener('pointerdown', onDecoratorPointerDown);
                     if(decoratorViewModeBtn) decoratorViewModeBtn.addEventListener('click', () => setDecoratorEditMode('view'));
                     if(decoratorEditModeBtn) decoratorEditModeBtn.addEventListener('click', () => setDecoratorEditMode('edit'));
@@ -658,28 +659,219 @@
             function setDecoratorEditMode(mode) { if (decoratorCurrentEditMode === mode || !decoratorViewModeBtn || !decoratorEditModeBtn || !decoratorCatalogContainer || !decoratorOrbitControls) return; decoratorCurrentEditMode = mode; decoratorViewModeBtn.classList.toggle('active', mode === 'view'); decoratorEditModeBtn.classList.toggle('active', mode === 'edit'); if (mode === 'view') { deselectDecoratorPlacedObject(); decoratorOrbitControls.enabled = true; decoratorCatalogContainer.style.pointerEvents = 'none'; decoratorCatalogContainer.style.opacity = '0.7'; } else { decoratorOrbitControls.enabled = true; decoratorCatalogContainer.style.pointerEvents = 'auto'; decoratorCatalogContainer.style.opacity = '1'; } }
             function getDecoratorPointerVector(event) { if(!decoratorCanvas) return new THREE.Vector2(0,0); const touch = event.changedTouches ? event.changedTouches[0] : event; const rect = decoratorCanvas.getBoundingClientRect(); decoratorPointer.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1; decoratorPointer.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1; return decoratorPointer; }
             function onDecoratorPointerDown(event) { event.preventDefault(); if(!decoratorRaycaster || !decoratorCamera || !decoratorScene || !decoratorFloorPlane || !decoratorPlacedItems) return; const pointerVec = getDecoratorPointerVector(event); decoratorRaycaster.setFromCamera(pointerVec, decoratorCamera); if (decoratorCurrentEditMode === 'edit') { const itemMeshes = Object.values(decoratorPlacedItems).map(item => item.threeObject); const intersectsItems = decoratorRaycaster.intersectObjects(itemMeshes, true); if (intersectsItems.length > 0) { let clickedObject = intersectsItems[0].object; while (clickedObject.parent && clickedObject.parent !== decoratorScene) { if (decoratorPlacedItems[clickedObject.uuid]) break; clickedObject = clickedObject.parent; } if (decoratorPlacedItems[clickedObject.uuid]) { selectDecoratorPlacedObject(clickedObject); decoratorSelectedCatalogItem = null; const currentSelectedCatalog = decoratorCatalogContainer.querySelector('.selected'); if (currentSelectedCatalog) currentSelectedCatalog.classList.remove('selected'); return; } } if (decoratorSelectedCatalogItem) { if(!decoratorFloorPlane) return; const intersectsFloor = decoratorRaycaster.intersectObject(decoratorFloorPlane); if (intersectsFloor.length > 0) { const intersectionPoint = intersectsFloor[0].point; placeDecoratorItem(decoratorSelectedCatalogItem, intersectionPoint); const currentSelectedCatalog = decoratorCatalogContainer.querySelector('.selected'); if (currentSelectedCatalog) currentSelectedCatalog.classList.remove('selected'); decoratorSelectedCatalogItem = null; } } else { deselectDecoratorPlacedObject(); } } }
-            function placeDecoratorItem(itemData, position) { if (!itemData || !itemData.modelUrl || !decoratorScene) return; showDecoratorLoading(true); const loader = new GLTFLoader(); loader.load(itemData.modelUrl, (gltf) => { const model = gltf.scene; model.position.copy(position); let scale = 1.0; if (itemData.id === 'shiba') scale = 0.5; else if (itemData.id === 'duck') scale = 0.01; else if (itemData.id === 'helmet') scale = 0.5; else if (itemData.id === 'flower') scale = 1.0; model.scale.set(scale, scale, scale); model.traverse( function ( child ) { if ( child.isMesh ) { child.castShadow = true; child.receiveShadow = true; } } ); const uniqueId = `item_${decoratorUniqueItemIdCounter++}`; model.uuid = uniqueId; decoratorScene.add(model); decoratorPlacedItems[uniqueId] = { threeObject: model, dataId: itemData.id }; selectDecoratorPlacedObject(model); sendObjectUpdate(uniqueId, model.position, model.rotation, itemData.id, true); showDecoratorLoading(false); }, undefined, (error) => { console.error(`GLTFLoader error loading ${itemData.name} from ${itemData.modelUrl}:`, error); showDecoratorLoading(false); alert(`Failed to load ${itemData.name}. Check console for details (CORS or network issues).`); }); }
+            function placeDecoratorItem(itemData, position) {
+                if (!itemData || !itemData.modelUrl || !decoratorScene) return;
+                showDecoratorLoading(true);
+
+                const loader = new GLTFLoader();
+                loader.load(itemData.modelUrl, gltf => {
+                const model = gltf.scene;
+
+                /* 1️⃣  SCALE FIRST so BBox uses final size  */
+                let scale = 1;
+                if (itemData.id === 'shiba')  scale = 0.5;
+                if (itemData.id === 'duck')   scale = 0.15;
+                if (itemData.id === 'helmet') scale = 0.5;
+                if (itemData.id === 'flower') scale = 1.0;
+                model.scale.set(scale, scale, scale);
+                model.updateMatrixWorld(true);                // <- important
+
+                /* 2️⃣  Compute offset after scaling          */
+                const box    = new THREE.Box3().setFromObject(model);
+                const offset = -box.min.y;
+
+                /* 3️⃣  Position model at click-point         */
+                model.position.copy(position);
+                model.position.y += offset;
+
+                /* 4️⃣  Shadows                               */
+                model.traverse(c => {
+                    if (c.isMesh) { c.castShadow = c.receiveShadow = true; }
+                });
+
+                /* 5️⃣  Book-keeping                          */
+                const id = `item_${decoratorUniqueItemIdCounter++}`;
+                model.uuid = id;
+                decoratorScene.add(model);
+                decoratorPlacedItems[id] = { threeObject:model, dataId:itemData.id };
+
+                selectDecoratorPlacedObject(model);
+                sendObjectUpdate(id, model.position, model.rotation, itemData.id, true);
+                showDecoratorLoading(false);
+                },
+                undefined,
+                err => { console.error(`GLTF load error (${itemData.name})`, err);
+                        showDecoratorLoading(false);
+                        alert(`Could not load "${itemData.name}". See console.`); });
+            }
+
             function selectDecoratorPlacedObject(object) { if (decoratorSelectedPlacedObject === object || !decoratorTransformControls || !decoratorDeleteBtn || !decoratorOrbitControls) return; decoratorSelectedPlacedObject = object; decoratorTransformControls.attach(object); decoratorDeleteBtn.style.display = 'block'; decoratorOrbitControls.enabled = false; }
             function deselectDecoratorPlacedObject() { if (decoratorSelectedPlacedObject && decoratorTransformControls && decoratorDeleteBtn && decoratorOrbitControls) { decoratorTransformControls.detach(); decoratorSelectedPlacedObject = null; decoratorDeleteBtn.style.display = 'none'; decoratorOrbitControls.enabled = true; } }
             function deleteDecoratorSelectedItem() { if (decoratorSelectedPlacedObject && decoratorCurrentEditMode === 'edit' && decoratorScene) { const idToDelete = decoratorSelectedPlacedObject.uuid; deselectDecoratorPlacedObject(); const itemToRemove = decoratorPlacedItems[idToDelete]; if (itemToRemove) { decoratorScene.remove(itemToRemove.threeObject); itemToRemove.threeObject.traverse(child => { if (child.isMesh) { if(child.geometry) child.geometry.dispose(); if (child.material) { if (Array.isArray(child.material)) child.material.forEach(m => {if(m.dispose) m.dispose();}); else if(child.material.dispose) child.material.dispose();}} }); delete decoratorPlacedItems[idToDelete]; sendObjectDelete(idToDelete); console.log(`Deleted item: ${idToDelete}`); } } }
             function showDecoratorLoading(isLoading) { if (decoratorLoadingIndicator) decoratorLoadingIndicator.style.display = isLoading ? 'block' : 'none'; }
-            function animateDecorator() { if (currentView !== 'decorator' || !decoratorSceneInitialized || !decoratorRenderer || !decoratorCamera) return; requestAnimationFrame(animateDecorator); if(decoratorOrbitControls) decoratorOrbitControls.update(); if(decoratorCanvas && (decoratorCanvas.clientWidth !== decoratorRenderer.domElement.width || decoratorCanvas.clientHeight !== decoratorRenderer.domElement.height)) { decoratorRenderer.setSize(decoratorCanvas.clientWidth, decoratorCanvas.clientHeight, false); decoratorCamera.aspect = decoratorCanvas.clientWidth / decoratorCanvas.clientHeight; decoratorCamera.updateProjectionMatrix(); } decoratorRenderer.render(decoratorScene, decoratorCamera); }
+            
+            function animateDecorator() {
+                requestAnimationFrame(animateDecorator);
+                if (currentView !== 'decorator' || !decoratorSceneInitialized || !decoratorRenderer || !decoratorCamera) {
+                    return;
+                }
+
+                const deltaTime = decoratorClock.getDelta();
+
+                if (decoratorOrbitControls) {
+                    decoratorOrbitControls.update();
+                }
+
+                // Update grass animation time
+                if (animatedGrassAssets.shader && animatedGrassAssets.shader.uniforms.time) {
+                    animatedGrassAssets.shader.uniforms.time.value += deltaTime;
+                }
+
+                // Resize check
+                if (decoratorCanvas &&
+                    (decoratorCanvas.clientWidth !== decoratorRenderer.domElement.width ||
+                     decoratorCanvas.clientHeight !== decoratorRenderer.domElement.height)) {
+                    decoratorRenderer.setSize(decoratorCanvas.clientWidth, decoratorCanvas.clientHeight, false);
+                    decoratorCamera.aspect = decoratorCanvas.clientWidth / decoratorCanvas.clientHeight;
+                    decoratorCamera.updateProjectionMatrix();
+                }
+                decoratorRenderer.render(decoratorScene, decoratorCamera);
+            }
+
             function sendObjectUpdate(id, position, rotation, dataId = null, isNew = false) { const updateData = { action: isNew ? 'create' : 'update', id, dataId, position: { x: position.x, y: position.y, z: position.z }, rotation: { x: rotation.x, y: rotation.y, z: rotation.z } }; console.log("SIMULATE SEND:", JSON.stringify(updateData)); }
             function sendObjectDelete(id) { const updateData = { action: 'delete', id }; console.log("SIMULATE SEND:", JSON.stringify(updateData)); }
-            function handleIncomingUpdate(data) { console.log("SIMULATE RECEIVE:", JSON.stringify(data)); if(!decoratorScene || !decoratorPlacedItems) return; if (data.action === 'create' || data.action === 'update') { let item = decoratorPlacedItems[data.id]; if (!item && data.action === 'create' && data.dataId) { const itemDefinition = decoratorItemsData.find(d => d.id === data.dataId); if (itemDefinition) { const loader = new GLTFLoader(); loader.load(itemDefinition.modelUrl, (gltf) => { const model = gltf.scene; model.uuid = data.id; model.position.set(data.position.x, data.position.y, data.position.z); model.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z); let scale = 1.0; if (itemDefinition.id === 'shiba') scale = 0.5; else if (itemDefinition.id === 'duck') scale = 0.01; else if (itemDefinition.id === 'helmet') scale = 0.5; else if (itemDefinition.id === 'flower') scale = 1.0; model.scale.set(scale, scale, scale); model.traverse( function ( child ) { if ( child.isMesh ) { child.castShadow = true; child.receiveShadow = true; } } ); decoratorScene.add(model); decoratorPlacedItems[data.id] = { threeObject: model, dataId: data.dataId }; }, undefined, (err) => console.error("Error loading remote create:", err)); } } else if (item) { if (decoratorSelectedPlacedObject !== item.threeObject) { item.threeObject.position.set(data.position.x, data.position.y, data.position.z); item.threeObject.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z); } } } else if (data.action === 'delete') { const itemToRemove = decoratorPlacedItems[data.id]; if (itemToRemove) { if (decoratorSelectedPlacedObject === itemToRemove.threeObject) deselectDecoratorPlacedObject(); decoratorScene.remove(itemToRemove.threeObject); itemToRemove.threeObject.traverse(child => { if (child.isMesh) { if(child.geometry) child.geometry.dispose(); if (child.material) { if (Array.isArray(child.material)) child.material.forEach(m => {if(m.dispose) m.dispose();}); else if(child.material.dispose) child.material.dispose();}} }); delete decoratorPlacedItems[data.id]; } } }
+            function handleIncomingUpdate(data) {
+                 console.log("SIMULATE RECEIVE:", JSON.stringify(data));
+                 if(!decoratorScene || !decoratorPlacedItems) return;
+                 if (data.action === 'create' || data.action === 'update') {
+                     let item = decoratorPlacedItems[data.id];
+                     if (!item && data.action === 'create' && data.dataId) {
+                         const itemDefinition = decoratorItemsData.find(d => d.id === data.dataId);
+                         if (itemDefinition) {
+                             const loader = new GLTFLoader();
+                             loader.load(itemDefinition.modelUrl, (gltf) => {
+                                 const model = gltf.scene;
+                                 model.uuid = data.id;
+                                 model.position.set(data.position.x, data.position.y, data.position.z);
+                                 model.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z);
+                                 let scale = 1.0;
+                                 if (itemDefinition.id === 'shiba') scale = 0.5;
+                                 else if (itemDefinition.id === 'duck') scale = 0.01; // Note: original script had 0.01, might need adjusting like placeDecoratorItem
+                                 else if (itemDefinition.id === 'helmet') scale = 0.5;
+                                 else if (itemDefinition.id === 'flower') scale = 1.0;
+                                 model.scale.set(scale, scale, scale);
+                                 model.traverse( function ( child ) { if ( child.isMesh ) { child.castShadow = true; child.receiveShadow = true; } } );
+                                 decoratorScene.add(model);
+                                 decoratorPlacedItems[data.id] = { threeObject: model, dataId: data.dataId };
+                             }, undefined, (err) => console.error("Error loading remote create:", err));
+                         }
+                     } else if (item) {
+                         if (decoratorSelectedPlacedObject !== item.threeObject) {
+                              item.threeObject.position.set(data.position.x, data.position.y, data.position.z);
+                              item.threeObject.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z);
+                         }
+                     }
+                 } else if (data.action === 'delete') {
+                      const itemToRemove = decoratorPlacedItems[data.id];
+                      if (itemToRemove) { if (decoratorSelectedPlacedObject === itemToRemove.threeObject) deselectDecoratorPlacedObject(); decoratorScene.remove(itemToRemove.threeObject); itemToRemove.threeObject.traverse(child => { if (child.isMesh) { if(child.geometry) child.geometry.dispose(); if (child.material) { if (Array.isArray(child.material)) child.material.forEach(m => {if(m.dispose) m.dispose();}); else if(child.material.dispose) child.material.dispose();}} }); delete decoratorPlacedItems[data.id]; }
+                 }
+            }
+
+            function createAnimatedGrass(scene, floorSize, instanceCount = 50000) {
+                const textureLoader = new THREE.TextureLoader();
+                const bladeDiffuseTexture = textureLoader.load('https://rawcdn.githack.com/pailhead/three.js-grass-example/master/blade_diffuse.png');
+                const bladeAlphaTexture = textureLoader.load('https://rawcdn.githack.com/pailhead/three.js-grass-example/master/blade_alpha.png');
+
+                const bladeGeometry = new THREE.PlaneGeometry(0.12, 1.0, 1, 3);
+                bladeGeometry.translate(0, 0.5, 0); 
+
+                const grassMaterial = new THREE.MeshStandardMaterial({
+                    map: bladeDiffuseTexture,
+                    alphaMap: bladeAlphaTexture,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    metalness: 0.1, 
+                    roughness: 0.8,
+                    depthWrite: true 
+                });
+
+                animatedGrassAssets.material = grassMaterial; 
+
+                grassMaterial.onBeforeCompile = shader => {
+                    shader.uniforms.time = { value: 0 };
+                    animatedGrassAssets.shader = shader; 
+
+                    shader.vertexShader = `
+                        uniform float time;
+                        // Pseudo-random function
+                        float random(vec2 st) {
+                            return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+                        }
+                    ` + shader.vertexShader;
+
+                    shader.vertexShader = shader.vertexShader.replace(
+                        '#include <begin_vertex>',
+                        `
+                        #include <begin_vertex>
+
+                        vec3 instanceWorldPos = (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+                        
+                        float noiseInputX = instanceWorldPos.x * 0.15 + time * 0.25;
+                        float noiseInputZ = instanceWorldPos.z * 0.15 + time * 0.15;
+                        float windStrength = random(vec2(noiseInputX, noiseInputZ)); 
+
+                        float bendFactor = position.y + 0.5; 
+
+                        float overallWindScale = 0.6; 
+                        float bendAngle = windStrength * overallWindScale * bendFactor; 
+
+                        float bendDirectionPhase = instanceWorldPos.x * 0.03 + instanceWorldPos.z * 0.015 + time * 0.1;
+                        float bendDirX = sin(bendDirectionPhase);
+                        float bendDirZ = cos(bendDirectionPhase);
+
+                        transformed.x += bendDirX * bendAngle;
+                        transformed.z += bendDirZ * bendAngle;
+                        `
+                    );
+                };
+                
+                const grassMesh = new THREE.InstancedMesh(bladeGeometry, grassMaterial, instanceCount);
+                grassMesh.receiveShadow = true; 
+                grassMesh.castShadow = true;    
+                scene.add(grassMesh);
+
+                const dummy = new THREE.Object3D();
+                const halfFloor = floorSize / 2;
+
+                for (let i = 0; i < instanceCount; i++) {
+                    dummy.position.set(
+                        (Math.random() - 0.5) * floorSize,
+                        0, 
+                        (Math.random() - 0.5) * floorSize
+                    );
+                    dummy.rotation.y = Math.random() * Math.PI * 2;
+                    const scale = 0.8 + Math.random() * 0.7; 
+                    dummy.scale.set(scale, scale, scale);
+                    dummy.updateMatrix();
+                    grassMesh.setMatrixAt(i, dummy.matrix);
+                }
+                grassMesh.instanceMatrix.needsUpdate = true;
+                
+                console.log("Animated grass created with " + instanceCount + " instances.");
+            }
+
 
             // --- Event Listeners Setup ---
-            // (Ensure all elements exist before adding listeners)
             if (toggleSidebarBtn && contactListContainerEl) { toggleSidebarBtn.addEventListener('click', () => { contactListContainerEl.classList.toggle('collapsed'); const isCollapsed = contactListContainerEl.classList.contains('collapsed'); toggleSidebarBtn.innerHTML = isCollapsed ? feather.icons['arrow-right-circle'].toSvg() : feather.icons['arrow-left-circle'].toSvg(); }); }
             if (searchContactsInput) { searchContactsInput.addEventListener('input', function() { const searchTerm = this.value.toLowerCase().trim(); let filteredContacts = masterContacts; if (searchTerm) { filteredContacts = masterContacts.filter(contact => contact.name.toLowerCase().includes(searchTerm)); } renderContacts(filteredContacts); if (activeChatContactId) { const activeLi = contactListEl.querySelector(`li[data-contact-id="${activeChatContactId}"]`); if (activeLi) activeLi.classList.add('active-contact'); } }); searchContactsInput.addEventListener('keydown', function(e) { if (e.key === 'Escape') { this.value = ''; renderContacts(masterContacts); if (activeChatContactId) { const activeLi = contactListEl.querySelector(`li[data-contact-id="${activeChatContactId}"]`); if (activeLi) activeLi.classList.add('active-contact'); } } }); }
             navTabs.forEach(tab => { if(tab) tab.addEventListener('click', () => switchView(tab.dataset.view)) });
             if(sendButton) sendButton.addEventListener('click', () => sendMessage(messageInputEl.value.trim()));
             if(messageInputEl) messageInputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(messageInputEl.value.trim()); }});
-            if(attachImageChatBtn) attachImageChatBtn.addEventListener('click', () => imageUploadChatInput.click());
+            if(attachImageChatBtn && imageUploadChatInput) attachImageChatBtn.addEventListener('click', () => imageUploadChatInput.click());
             if(imageUploadChatInput) imageUploadChatInput.addEventListener('change', (event) => { const file = event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => sendMessage(messageInputEl.value.trim(), e.target.result); reader.readAsDataURL(file); }});
-            if(submitPostButton) submitPostButton.addEventListener('click', () => { const file = createPostImageInput.files[0]; const caption = createPostCaptionInput.value.trim(); if (file) { const reader = new FileReader(); reader.onload = (e) => createPost(e.target.result, caption); reader.readAsDataURL(file); } else { createPost(null, caption); }});
+            if(submitPostButton && createPostImageInput && createPostCaptionInput) submitPostButton.addEventListener('click', () => { const file = createPostImageInput.files[0]; const caption = createPostCaptionInput.value.trim(); if (file) { const reader = new FileReader(); reader.onload = (e) => createPost(e.target.result, caption); reader.readAsDataURL(file); } else { createPost(null, caption); }});
             if(feedContainerEl) feedContainerEl.addEventListener('click', (e) => { const btn = e.target.closest('.like-button'); if (btn) toggleLike(btn.dataset.postId); });
-            if(saveEncryptionKeyBtn) saveEncryptionKeyBtn.addEventListener('click', () => { const newKey = encryptionKeyInput.value; if (newKey) { encryptionKey = newKey; localStorage.setItem('chatEncryptionKey', encryptionKey); alert("Client-side encryption key set/updated."); } else { encryptionKey = null; localStorage.removeItem('chatEncryptionKey'); alert("Client-side encryption key cleared."); } updateEncryptionKeyStatus(); if(activeChatContactId) renderMessages(); });
+            if(saveEncryptionKeyBtn && encryptionKeyInput) saveEncryptionKeyBtn.addEventListener('click', () => { const newKey = encryptionKeyInput.value; if (newKey) { encryptionKey = newKey; localStorage.setItem('chatEncryptionKey', encryptionKey); alert("Client-side encryption key set/updated."); } else { encryptionKey = null; localStorage.removeItem('chatEncryptionKey'); alert("Client-side encryption key cleared."); } updateEncryptionKeyStatus(); if(activeChatContactId) renderMessages(); });
             if(callButton) callButton.addEventListener('click', () => { if (activeChatContactId && masterContacts.find(c => c.id === activeChatContactId)?.name !== 'Echo Bot') startVideoCall(); });
             if(endCallBtn) endCallBtn.addEventListener('click', stopVideoCall);
             if(micToggleBtn) micToggleBtn.addEventListener('click', toggleMic);
@@ -692,6 +884,6 @@
 
         });
     </script>
-
+    
 </body>
 </html>
