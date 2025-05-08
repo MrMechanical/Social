@@ -849,7 +849,7 @@
                  }
             }
 
-             function createAnimatedGrass(scene, floorSize, instanceCount = 5000) { // Reduced default instanceCount for mobile performance
+             function createAnimatedGrass(scene, floorSize, instanceCount = 100000) { // Reduced default instanceCount for mobile performance
                 const BLADE_HEIGHT = 0.1; 
                 const BLADE_WIDTH = 0.012; 
 
@@ -992,7 +992,7 @@
                         const model = gltf.scene;
                         // Adjust scale as needed for the penguin model
                         model.scale.set(0.5, 0.5, 0.5); 
-                        model.position.y = 0.75; // Adjusted to raise the penguin
+                        model.position.y = 0.2; // Adjusted to raise the penguin
                         
                         model.traverse(child => {
                             if (child.isMesh) {
